@@ -2,19 +2,29 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "App.js",
   "scripts": {
     "build": "esbuild src/index.js --bundle --outdir=public --minify",
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "nodemon app.js",
     "servers": "concurrently \"npm run start\" \"cd ../frontend && npm run start\""
   },
   "type": "module",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "esm": {
+    "extensions": [
+      ".mjs",
+      ".js",
+      ".avif"
+    ]
+  },
   "types": "/",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@img/sharp-win32-x64": "^0.33.1",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -24,6 +34,7 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.6.5",
     "nodemon": "^3.0.2",
+    "sharp": "^0.33.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

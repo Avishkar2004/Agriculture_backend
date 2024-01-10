@@ -1,74 +1,60 @@
-import { v4 as uuidv4 } from "uuid";
-import fs from "fs"; // Add this line
-import path from "path";
-const p = path.join(__dirname, "../data/dataInfo.mjs");
+// // Data.js
+// import { v4 as uuidv4 } from "uuid";
+// import fs from "fs";
+// import path from "path";
 
-// Import the object name
-import { products } from "../data/dataInfo.mjs"; // Replace with the correct path
+// const p = path.join(__dirname, "../data/dataInfo.mjs");
 
-// Export the products array
-exports.products = products.map((product) => ({
-  // Update properties based on your new data model
-  name: product.name,
-  description: product.description,
-  salePrice: product.salePrice,
-  reviews: product.reviews,
-  stockStatus: product.stockStatus,
-  image: product.image,
-  to: product.to,
-}));
+// class Products {
+//   constructor(
+//     name,
+//     description,
+//     salePrice,
+//     reviews,
+//     stockStatus,
+//     image,
+//     to
+//   ) {
+//     this.id = null; // id is set later in the save method
+//     this.name = name;
+//     this.description = description;
+//     this.salePrice = salePrice;
+//     this.reviews = reviews;
+//     this.stockStatus = stockStatus;
+//     this.image = image;
+//     this.to = to;
+//   }
 
-const getProductsFromFile = (cb) => {
-  fs.readFile(p, (err, fileContent) => {
-    if (err) {
-      cb([]);
-    } else {
-      cb(JSON.parse(fileContent));
-    }
-  });
-};
+//   save(existingProducts) {
+//     this.id = String(uuidv4());
+//     existingProducts.push(this);
+//     fs.writeFile(p, JSON.stringify(existingProducts), (err) => {
+//       console.log(err);
+//     });
+//   }
 
-class Products {
-  constructor(
-    id,
-    name,
-    description,
-    salePrice,
-    reviews,
-    stockStatus,
-    image,
-    to
-  ) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.salePrice = salePrice;
-    this.reviews = reviews;
-    this.stockStatus = stockStatus;
-    this.image = image;
-    this.to = to;
-  }
+//   static fetchAll(cb) {
+//     getProductsFromFile(cb);
+//   }
 
-  save() {
-    getProductsFromFile((products) => {
-      this.id = String(uuidv4());
-      products.push(this);
-      fs.writeFile(p, JSON.stringify(products), (err) => {
-        console.log(err);
-      });
-    });
-  }
+//   static findById(id, cb) {
+//     getProductsFromFile((products) => {
+//       const product = products.find((p) => p.id === id);
+//       cb(product);
+//     });
+//   }
+// }
 
-  static fetchAll(cb) {
-    getProductsFromFile(cb);
-  }
+// const getProductsFromFile = (cb) => {
+//   fs.readFile(p, (err, fileContent) => {
+//     if (err) {
+//       cb([]);
+//     } else {
+//       cb(JSON.parse(fileContent));
+//     }
+//   });
+// };
 
-  static findById(id, cb) {
-    getProductsFromFile((products) => {
-      const product = products.find((p) => p.id === id);
-      cb(product);
-    });
-  }
-}
+// const productsInstance = new Products();
 
-module.exports = Products;
+// export { productsInstance as products };
