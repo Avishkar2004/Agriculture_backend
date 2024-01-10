@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
-import path from "path";
 import mysql2 from "mysql2";
 import sharp from "sharp";
 
@@ -11,9 +10,6 @@ const db = mysql2.createConnection({
   user: "root",
   password: "",
   database: "agrisite",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
 });
 
 db.connect((err) => {
@@ -27,10 +23,7 @@ db.connect((err) => {
 const app = express();
 const port = 8080;
 
-const inputFolder = "images";
 const outputFolder = "output";
-
-const formats = ["avif", "bin "];
 
 if (!fs.existsSync(outputFolder)) {
   fs.mkdirSync(outputFolder);
@@ -39,12 +32,6 @@ if (!fs.existsSync(outputFolder)) {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-const p = path.join(
-  new URL(".", import.meta.url).pathname,
-  "data",
-  "dataInfo.cjs"
-);
 
 class Products {
   constructor(name, description, salePrice, reviews, stockStatus, image, to) {
@@ -61,7 +48,7 @@ class Products {
   save(existingProducts) {
     this.id = String(uuidv4());
     existingProducts.push(this);
-    fs.writeFile(p, JSON.stringify(existingProducts), (err) => {
+    fs.writeFile("data.json", JSON.stringify(existingProducts), (err) => {
       console.log(err);
     });
   }
@@ -79,7 +66,7 @@ class Products {
 }
 
 const getProductsFromFile = (cb) => {
-  fs.readFile(p, (err, fileContent) => {
+  fs.readFile("data.json", (err, fileContent) => {
     if (err) {
       cb([]);
     } else {
@@ -88,14 +75,14 @@ const getProductsFromFile = (cb) => {
   });
 };
 
-//Image processing logic
-fs.readdir(inputFolder, (err, files) => {
+fs.readdir("images", (err, files) => {
   if (err) {
     console.error(err);
     return;
   }
 
   files.forEach((file) => {
+    const formats = ["avif", "bin"];
     if (
       file.endsWith(".jpg") ||
       file.endsWith(".jpeg") ||
@@ -103,11 +90,11 @@ fs.readdir(inputFolder, (err, files) => {
       file.endsWith(".avif") ||
       file.endsWith(".jpg")
     ) {
-      const inputPath = `${inputFolder}/${file}`;
+      const inputPath = `images/${file}`;
       const name = file.substring(0, file.lastIndexOf("."));
 
       formats.forEach((format) => {
-        const outputPath = `${outputFolder}/${name}.${format}`;
+        const outputPath = `output/${name}.${format}`;
 
         if (!fs.existsSync(outputPath)) {
           sharp(inputPath)
@@ -125,8 +112,6 @@ fs.readdir(inputFolder, (err, files) => {
   });
 });
 
-const productsInstance = new Products();
-
 const adminController = {
   getIndex: (req, res) => {
     res.send("Product Home Route");
@@ -134,7 +119,6 @@ const adminController = {
 
   getProducts: (req, res) => {
     Products.fetchAll((products) => {
-      console.log(products);
       res.json(products);
     });
   },
@@ -142,7 +126,6 @@ const adminController = {
   getProduct: (req, res) => {
     const productId = req.params.productId;
     Products.findById(productId, (product) => {
-      console.log(product);
       res.json(product);
     });
   },
@@ -151,7 +134,6 @@ const adminController = {
     const { name, description, salePrice, reviews, stockStatus, image, to } =
       req.body;
     const product = new Products(
-      null,
       name,
       description,
       salePrice,
@@ -173,14 +155,13 @@ app.get("/products", (req, res) => {
       return;
     }
 
-    // map over the results and convert the img data to base64
-    const productWithbasse64Images = result.map((product) => {
+    const productWithBase64Images = result.map((product) => {
       const base64Image = Buffer.from(product.image, "binary").toString(
         "base64"
       );
       return { ...product, image: base64Image };
     });
-    res.json(productWithbasse64Images);
+    res.json(productWithBase64Images);
   });
 });
 
@@ -193,7 +174,6 @@ adminRoute.post("/add-product", adminController.postAddProduct);
 
 app.use("/", adminRoute);
 
-app.use("/static", express.static("output"));
 app.get("/", (req, res) => {
   res.send("Hello world");
 });
