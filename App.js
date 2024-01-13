@@ -88,7 +88,8 @@ fs.readdir("images", (err, files) => {
       file.endsWith(".jpeg") ||
       file.endsWith(".png") ||
       file.endsWith(".avif") ||
-      file.endsWith(".jpg")
+      file.endsWith(".jpg") ||
+      file.endsWith(".webp")
     ) {
       const inputPath = `images/${file}`;
       const name = file.substring(0, file.lastIndexOf("."));
@@ -159,9 +160,36 @@ app.get("/products", (req, res) => {
       const base64Image = Buffer.from(product.image, "binary").toString(
         "base64"
       );
-      return { ...product, image: base64Image };
+      const base64HdImage = Buffer.from(product.hd_image, "binary").toString(
+        "base64"
+      );
+
+      return { ...product, image: base64Image, hd_image: base64HdImage };
     });
     res.json(productWithBase64Images);
+  });
+});
+
+// This is for plant Growth Regulator
+app.get("/plantgrowthregulator", (req, res) => {
+  db.query("SELECT * FROM plantgrowthregulator", (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+
+    const productWithBase64PGRImages = result.map((plantgrowthregulator) => {
+      const base64PGRImage = Buffer.from(plantgrowthregulator.image, "binary").toString(
+        "base64"
+      );
+      const base64HdImagePGR = Buffer.from(plantgrowthregulator.hd_image, "binary").toString(
+        "base64"
+      );
+
+      return { ...plantgrowthregulator, image: base64PGRImage, hd_image: base64HdImagePGR };
+    });
+    res.json(productWithBase64PGRImages);
   });
 });
 
