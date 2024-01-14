@@ -249,6 +249,33 @@ app.get("/cart", (req, res) => {
   });
 });
 
+// Inserting into cart Item
+app.post("/cart", (req, res) => {
+  const newItem = req.body;
+  // Assuming you have fields like 'id', 'name', 'price', 'size', 'quantity', 'image', 'reviews' in your newItem
+  const { id, name, price, size, quantity, image, reviews } = newItem;
+  // Keep image data as a base64-encoded string if it's not null
+  const binaryImage = image ? Buffer.from(image, "base64") : null;
+  // Construct the SQL query to insert the new item into the 'cart' table
+  const insertQuery =
+    "INSERT INTO cart (id, name, price, size, quantity, image, reviews) VALUES (?, ?, ?, ?, ?, ?, ?)";
+  // Execute the query with the provided values
+  db.query(
+    insertQuery,
+    [id, name, price, size, quantity, binaryImage, reviews],
+    (err, results) => {
+      if (err) {
+        console.error("Error inserting into cart:", err);
+        res.status(500).json({ error: "Internal server error in Cart" });
+        return;
+      }
+      res.json(newItem); // Return the inserted item as a response
+    }
+  );
+});
+
+
+
 
 const adminRoute = express.Router();
 
