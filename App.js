@@ -180,18 +180,75 @@ app.get("/plantgrowthregulator", (req, res) => {
     }
 
     const productWithBase64PGRImages = result.map((plantgrowthregulator) => {
-      const base64PGRImage = Buffer.from(plantgrowthregulator.image, "binary").toString(
-        "base64"
-      );
-      const base64HdImagePGR = Buffer.from(plantgrowthregulator.hd_image, "binary").toString(
-        "base64"
-      );
+      const base64PGRImage = Buffer.from(
+        plantgrowthregulator.image,
+        "binary"
+      ).toString("base64");
+      const base64HdImagePGR = Buffer.from(
+        plantgrowthregulator.hd_image,
+        "binary"
+      ).toString("base64");
 
-      return { ...plantgrowthregulator, image: base64PGRImage, hd_image: base64HdImagePGR };
+      return {
+        ...plantgrowthregulator,
+        image: base64PGRImage,
+        hd_image: base64HdImagePGR,
+      };
     });
     res.json(productWithBase64PGRImages);
   });
 });
+
+// This is for Organic Product
+app.get("/organicproduct", (req, res) => {
+  db.query("SELECT * FROM organicproduct", (err, result) => {
+    if (err) {
+      console.err(err);
+      res
+        .status(500)
+        .json({ error: "Internal server error in Organicproduct" });
+      return;
+    }
+
+    const baseWithBase64Organic = result.map((organicproduct) => {
+      const base64Organic = Buffer.from(
+        organicproduct.image,
+        "binary"
+      ).toString("base64");
+      return { ...organicproduct, image: base64Organic };
+    });
+
+    res.send(baseWithBase64Organic);
+  });
+});
+
+// This is for cart
+app.get("/cart", (req, res) => {
+  db.query("SELECT * FROM cart", (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal server error in Cart" });
+      return;
+    }
+
+    try {
+      const baseWithCart = results.map((cart) => {
+        // Check if the 'image' field exists before converting it to a Buffer
+        const baseCartPhoto = cart.image
+          ? Buffer.from(cart.image, "binary").toString("base64")
+          : null;
+
+        return { ...cart, image: baseCartPhoto };
+      });
+
+      res.send(baseWithCart);
+    } catch (error) {
+      console.error("Error processing cart data:", error);
+      res.status(500).json({ error: "Internal server error in Cart" });
+    }
+  });
+});
+
 
 const adminRoute = express.Router();
 
