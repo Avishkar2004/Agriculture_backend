@@ -233,7 +233,6 @@ app.get("/cart", (req, res) => {
 
     try {
       const baseWithCart = results.map((cart) => {
-        // Check if the 'image' field exists before converting it to a Buffer
         const baseCartPhoto = cart.image
           ? Buffer.from(cart.image, "binary").toString("base64")
           : null;
@@ -249,31 +248,32 @@ app.get("/cart", (req, res) => {
   });
 });
 
-// Inserting into cart Item
+
+
+// Inserting into cart Item or updating if item already exists
 app.post("/cart", (req, res) => {
   const newItem = req.body;
-  // Assuming you have fields like 'id', 'name', 'price', 'size', 'quantity', 'image', 'reviews' in your newItem
-  const { id, name, price, size, quantity, image, reviews } = newItem;
-  // Keep image data as a base64-encoded string if it's not null
+  const { id, name, price, image } = newItem;
   const binaryImage = image ? Buffer.from(image, "base64") : null;
-  // Construct the SQL query to insert the new item into the 'cart' table
-  const insertQuery =
-    "INSERT INTO cart (id, name, price, size, quantity, image, reviews) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  // Execute the query with the provided values
-  db.query(
-    insertQuery,
-    [id, name, price, size, quantity, binaryImage, reviews],
-    (err, results) => {
-      if (err) {
-        console.error("Error inserting into cart:", err);
-        res.status(500).json({ error: "Internal server error in Cart" });
-        return;
-      }
-      res.json(newItem); // Return the inserted item as a response
-    }
-  );
-});
 
+  const insertOrUpdateQuery = `
+    INSERT INTO cart (id, name, price, image)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    price = VALUES(price),
+    image = VALUES(image)
+  `;
+
+  db.query(insertOrUpdateQuery, [id, name, price, binaryImage], (err, results) => {
+    if (err) {
+      console.error("Error inserting or updating cart item:", err);
+      return res.status(500).json({ error: "Internal server error in Cart" });
+    }
+
+    res.json({ ...newItem });
+  });
+});
 
 
 
