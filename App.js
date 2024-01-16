@@ -222,6 +222,47 @@ app.get("/organicproduct", (req, res) => {
   });
 });
 
+// This is for Micro Nutrient
+app.get("/micro-nutrients", (req, res) => {
+  db.query("SELECT * FROM `micro-nutrients`", (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server error in micro-nutrients" });
+      return;
+    }
+
+    const baseWithBase64micronutrients = results.map((micronutrient) => {
+      const base64Image = Buffer.from(
+        micronutrient.image, // Corrected property name
+        "binary"
+      ).toString("base64");
+      return { ...micronutrient, image: base64Image };
+    });
+
+    res.send(baseWithBase64micronutrients);
+  });
+});
+
+// This is for Insecticide
+app.get("/Insecticide", (req, res) => {
+  db.query("SELECT * FROM Insecticide", (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server error in Insecticide" });
+      return;
+    }
+    const baseWithBase64Insecticide = results.map((Insecticide) => {
+      const base64ImageInsecticide = Buffer.from(
+        Insecticide.image, // Corrected property name
+        "binary"
+      ).toString("base64");
+      return { ...Insecticide, image: base64ImageInsecticide };
+    });
+
+    res.send(baseWithBase64Insecticide);
+  });
+});
+
 // This is for cart
 app.get("/cart", (req, res) => {
   db.query("SELECT * FROM cart", (err, results) => {
@@ -248,8 +289,6 @@ app.get("/cart", (req, res) => {
   });
 });
 
-
-
 // Inserting into cart Item or updating if item already exists
 app.post("/cart", (req, res) => {
   const newItem = req.body;
@@ -265,17 +304,19 @@ app.post("/cart", (req, res) => {
     image = VALUES(image)
   `;
 
-  db.query(insertOrUpdateQuery, [id, name, price, binaryImage], (err, results) => {
-    if (err) {
-      console.error("Error inserting or updating cart item:", err);
-      return res.status(500).json({ error: "Internal server error in Cart" });
+  db.query(
+    insertOrUpdateQuery,
+    [id, name, price, binaryImage],
+    (err, results) => {
+      if (err) {
+        console.error("Error inserting or updating cart item:", err);
+        return res.status(500).json({ error: "Internal server error in Cart" });
+      }
+
+      res.json({ ...newItem });
     }
-
-    res.json({ ...newItem });
-  });
+  );
 });
-
-
 
 const adminRoute = express.Router();
 
