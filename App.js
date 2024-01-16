@@ -227,7 +227,9 @@ app.get("/micro-nutrients", (req, res) => {
   db.query("SELECT * FROM `micro-nutrients`", (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ error: "Internal Server error in micro-nutrients" });
+      res
+        .status(500)
+        .json({ error: "Internal Server error in micro-nutrients" });
       return;
     }
 
