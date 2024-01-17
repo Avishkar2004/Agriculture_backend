@@ -160,11 +160,8 @@ app.get("/products", (req, res) => {
       const base64Image = Buffer.from(product.image, "binary").toString(
         "base64"
       );
-      const base64HdImage = Buffer.from(product.hd_image, "binary").toString(
-        "base64"
-      );
 
-      return { ...product, image: base64Image, hd_image: base64HdImage };
+      return { ...product, image: base64Image };
     });
     res.json(productWithBase64Images);
   });
@@ -184,15 +181,9 @@ app.get("/plantgrowthregulator", (req, res) => {
         plantgrowthregulator.image,
         "binary"
       ).toString("base64");
-      const base64HdImagePGR = Buffer.from(
-        plantgrowthregulator.hd_image,
-        "binary"
-      ).toString("base64");
-
       return {
         ...plantgrowthregulator,
         image: base64PGRImage,
-        hd_image: base64HdImagePGR,
       };
     });
     res.json(productWithBase64PGRImages);
