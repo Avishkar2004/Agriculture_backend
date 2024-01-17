@@ -282,33 +282,46 @@ app.get("/cart", (req, res) => {
   });
 });
 
-// Inserting into cart Item or updating if item already exists
+// For inserting data
+
 app.post("/cart", (req, res) => {
-  const newItem = req.body;
-  const { id, name, price, image } = newItem;
-  const binaryImage = image ? Buffer.from(image, "base64") : null;
+  try {
+    const newItem = req.body;
+    console.log("Received request to add to cart:", newItem);
 
-  const insertOrUpdateQuery = `
-    INSERT INTO cart (id, name, price, image)
-    VALUES (?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE
-    name = VALUES(name),
-    price = VALUES(price),
-    image = VALUES(image)
-  `;
+    // Convert base64 image to buffer
+    const binaryImage = newItem.image
+      ? Buffer.from(newItem.image, "base64")
+      : null;
 
-  db.query(
-    insertOrUpdateQuery,
-    [id, name, price, binaryImage],
-    (err, results) => {
-      if (err) {
-        console.error("Error inserting or updating cart item:", err);
-        return res.status(500).json({ error: "Internal server error in Cart" });
+    const insertOrUpdateQuery = `
+      INSERT INTO cart (id, name, price, image, quantity)
+      VALUES (?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+      name = VALUES(name),
+      price = VALUES(price),
+      image = VALUES(image),
+      quantity = VALUES(quantity)
+    `;
+
+    db.query(
+      insertOrUpdateQuery,
+      [newItem.id, newItem.name, newItem.price, binaryImage, newItem.quantity],
+      (err, results) => {
+        if (err) {
+          console.error("Error inserting or updating cart item:", err);
+          return res
+            .status(500)
+            .json({ error: "Internal server error in Cart" });
+        }
+
+        res.json({ ...newItem });
       }
-
-      res.json({ ...newItem });
-    }
-  );
+    );
+  } catch (error) {
+    console.error("Unexpected error in /cart route:", error);
+    res.status(500).json({ error: "Internal server error in Cart" });
+  }
 });
 
 const adminRoute = express.Router();
