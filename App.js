@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import mysql2 from "mysql2";
 import sharp from "sharp";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const db = mysql2.createConnection({
   host: "localhost",
@@ -148,6 +150,65 @@ const adminController = {
   },
 };
 
+app.post("/users", async (req, res) => {
+  try {
+    // Extract user data from the request body
+    const { username, email, password, confirmPassword } = req.body;
+
+    // Hash the password and confirmPassword using bcrypt
+    const hashedPassword = await bcrypt.hash(password, 20);
+    const hashedConfirmPassword = await bcrypt.hash(confirmPassword, 20);
+
+    // SQL query to insert user data into the database
+    const insertUserQuery =
+      "INSERT INTO users(username, email, password, confirmPassword) VALUES (?, ?, ?, ?)";
+
+    // Execute the query using promises
+    await db
+      .promise()
+      .execute(insertUserQuery, [
+        username,
+        email,
+        hashedPassword,
+        hashedConfirmPassword,
+      ]);
+
+    // Respond with a success message
+    res.status(201).send("User registered successfully.");
+  } catch (error) {
+    // Log any errors and respond with an internal server error
+    console.error(error);
+    res.status(500).send("Internal server error");
+  }
+});
+
+
+// Login
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const selectUserQuery = "SELECT * FROM users WHERE username = ?";
+    const [rows] = await db.promise().execute(selectUserQuery, [username]);
+
+    if (rows.length === 0) {
+      return res.status(401).send("Invalid username and password");
+    }
+    const user = rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).send("Invalid username and password");
+    }
+
+    const token = jwt.sign({ userId: user.id }, "your_secret_key", {
+      expiresIn: "1h",
+    });
+    res.json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal server error");
+  }
+});
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, result) => {
     if (err) {
