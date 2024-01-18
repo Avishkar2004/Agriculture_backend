@@ -295,18 +295,17 @@ app.post("/cart", (req, res) => {
       : null;
 
     const insertOrUpdateQuery = `
-      INSERT INTO cart (id, name, price, image, quantity)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO cart (id, name, price, image)
+      VALUES (?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
       name = VALUES(name),
       price = VALUES(price),
-      image = VALUES(image),
-      quantity = VALUES(quantity)
+      image = VALUES(image)
     `;
 
     db.query(
       insertOrUpdateQuery,
-      [newItem.id, newItem.name, newItem.price, binaryImage, newItem.quantity],
+      [newItem.id, newItem.name, newItem.price, binaryImage],
       (err, results) => {
         if (err) {
           console.error("Error inserting or updating cart item:", err);
