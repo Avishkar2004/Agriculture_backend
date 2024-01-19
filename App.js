@@ -4,14 +4,15 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import mysql2 from "mysql2";
 import sharp from "sharp";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 const db = mysql2.createConnection({
   host: "localhost",
   user: "root",
   password: "",
   database: "agrisite",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
 db.connect((err) => {
@@ -150,65 +151,93 @@ const adminController = {
   },
 };
 
+// Endpoint for handling user signup
 app.post("/users", async (req, res) => {
+  const { username, email, password, confirmPassword } = req.body;
+  console.log("Request Body:", req.body); // Log the entire request body
   try {
-    // Extract user data from the request body
-    const { username, email, password, confirmPassword } = req.body;
-
-    // Hash the password and confirmPassword using bcrypt
-    const hashedPassword = await bcrypt.hash(password, 20);
-    const hashedConfirmPassword = await bcrypt.hash(confirmPassword, 20);
-
-    // SQL query to insert user data into the database
-    const insertUserQuery =
-      "INSERT INTO users(username, email, password, confirmPassword) VALUES (?, ?, ?, ?)";
-
-    // Execute the query using promises
-    await db
+    // check if the username already exists
+    const [existingUser] = await db
       .promise()
-      .execute(insertUserQuery, [
-        username,
-        email,
-        hashedPassword,
-        hashedConfirmPassword,
-      ]);
+      .execute("SELECT * FROM users WHERE username = ?", [username]);
 
-    // Respond with a success message
-    res.status(201).send("User registered successfully.");
+    if (existingUser.length > 0) {
+      return res
+        .status(400)
+        .send("Username is already taken. Please choose another.");
+    }
+
+    if (existingUser.length === 0) {
+      return res
+        .status(404)
+        .send("User not found. Please check your username.");
+    }
+
+    // Check if the provided password matches the stored password
+    if (existingUser[0].password !== password) {
+      return res.status(401).send("Incorrect password. Please try again.");
+    }
+
+    // If username and password are correct, you can consider the user logged in
+    const user = { id: existingUser[0].id, username };
+
+    // if the username is not taken, proceed with the insertion
+    const [result] = await db
+      .promise()
+      .execute(
+        "INSERT INTO users (username, email, password, confirmpassword) VALUES (?, ?, ?, ?)",
+        [username, email, password, confirmPassword]
+      );
+
+    res.status(201).json({ message: "User created successfully.", user });
+    console.log(result);
   } catch (error) {
-    // Log any errors and respond with an internal server error
-    console.error(error);
-    res.status(500).send("Internal server error");
+    console.error("Error inserting user into database:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-
-// Login
+//fetch data from login
+// Your server-side code
 app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
   try {
-    const { username, password } = req.body;
+    // Check if the username exists in the database
+    const [existingUser] = await db
+      .promise()
+      .execute("SELECT * FROM users WHERE username = ?", [username]);
 
-    const selectUserQuery = "SELECT * FROM users WHERE username = ?";
-    const [rows] = await db.promise().execute(selectUserQuery, [username]);
-
-    if (rows.length === 0) {
-      return res.status(401).send("Invalid username and password");
-    }
-    const user = rows[0];
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).send("Invalid username and password");
+    if (existingUser.length === 0 || existingUser[0].password !== password) {
+      // both cases are treated the same wat to provide a generic error message
+      return res
+        .status(401)
+        .json({ error: "Both username and password are wrong." });
     }
 
-    const token = jwt.sign({ userId: user.id }, "your_secret_key", {
-      expiresIn: "1h",
-    });
-    res.json({ token });
+    if (existingUser.length === 0) {
+      return res.status(401).json({ error: "Username not found." });
+    }
+
+    // Check if the provided password matches the stored password
+    if (existingUser[0].password !== password) {
+      return res.status(401).json({
+        error:
+          "Sorry, your password was incorrect. Please double-check your password.",
+      });
+    }
+
+    // If username and password are correct, you can consider the user logged in
+    const user = { id: existingUser[0].id, username };
+
+    res.status(200).json({ success: true, message: "Login successful.", user });
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
+    console.error("Error during login:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+// for fetching product data
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, result) => {
     if (err) {
@@ -374,7 +403,6 @@ app.post("/cart", (req, res) => {
             .status(500)
             .json({ error: "Internal server error in Cart" });
         }
-
         res.json({ ...newItem });
       }
     );
