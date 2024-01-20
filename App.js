@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import mysql2 from "mysql2";
 import sharp from "sharp";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const db = mysql2.createConnection({
   host: "localhost",
@@ -151,7 +153,7 @@ const adminController = {
   },
 };
 
-// Endpoint for handling user signup
+// Endpoint for handling user signup/createAcc
 app.post("/users", async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
   console.log("Request Body:", req.body); // Log the entire request body
@@ -162,24 +164,11 @@ app.post("/users", async (req, res) => {
       .execute("SELECT * FROM users WHERE username = ?", [username]);
 
     if (existingUser.length > 0) {
+      // If username already exists, return a message and prompt user to choose another
       return res
         .status(400)
-        .send("Username is already taken. Please choose another.");
+        .json({ message: "Username is already taken. Please choose another." });
     }
-
-    if (existingUser.length === 0) {
-      return res
-        .status(404)
-        .send("User not found. Please check your username.");
-    }
-
-    // Check if the provided password matches the stored password
-    if (existingUser[0].password !== password) {
-      return res.status(401).send("Incorrect password. Please try again.");
-    }
-
-    // If username and password are correct, you can consider the user logged in
-    const user = { id: existingUser[0].id, username };
 
     // if the username is not taken, proceed with the insertion
     const [result] = await db
@@ -189,6 +178,12 @@ app.post("/users", async (req, res) => {
         [username, email, password, confirmPassword]
       );
 
+    // If the insertion is successful, return a success message along with user details
+    const user = { id: result.insertId, username }; // Assuming your result object has an insertId property
+
+    // Do not include the password in the response
+    delete user.password;
+
     res.status(201).json({ message: "User created successfully.", user });
     console.log(result);
   } catch (error) {
@@ -197,28 +192,25 @@ app.post("/users", async (req, res) => {
   }
 });
 
+
 //fetch data from login
 // Your server-side code
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
   try {
     // Check if the username exists in the database
     const [existingUser] = await db
       .promise()
       .execute("SELECT * FROM users WHERE username = ?", [username]);
-
     if (existingUser.length === 0 || existingUser[0].password !== password) {
       // both cases are treated the same wat to provide a generic error message
       return res
         .status(401)
         .json({ error: "Both username and password are wrong." });
     }
-
     if (existingUser.length === 0) {
       return res.status(401).json({ error: "Username not found." });
     }
-
     // Check if the provided password matches the stored password
     if (existingUser[0].password !== password) {
       return res.status(401).json({
@@ -226,10 +218,13 @@ app.post("/login", async (req, res) => {
           "Sorry, your password was incorrect. Please double-check your password.",
       });
     }
+    // Generate a random secret key
+    const secretKey = crypto.randomBytes(32).toString("hex");
+    console.log("Secret Key:", secretKey);
 
     // If username and password are correct, you can consider the user logged in
     const user = { id: existingUser[0].id, username };
-
+    const token = jwt.sign(user, secretKey); // Replace 'your_secret_key' with your actual secret key
     res.status(200).json({ success: true, message: "Login successful.", user });
   } catch (error) {
     console.error("Error during login:", error);
