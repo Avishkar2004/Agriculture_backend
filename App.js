@@ -6,6 +6,8 @@ import mysql2 from "mysql2";
 import sharp from "sharp";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { promisify } from "util";
+
 
 const db = mysql2.createConnection({
   host: "localhost",
@@ -192,6 +194,7 @@ app.post("/users", async (req, res) => {
   }
 });
 
+const asyncQuery = promisify(db.promise().query).bind(db.promise());
 
 //fetch data from login
 // Your server-side code
@@ -218,14 +221,15 @@ app.post("/login", async (req, res) => {
           "Sorry, your password was incorrect. Please double-check your password.",
       });
     }
+
     // Generate a random secret key
     const secretKey = crypto.randomBytes(32).toString("hex");
     console.log("Secret Key:", secretKey);
 
     // If username and password are correct, you can consider the user logged in
-    const user = { id: existingUser[0].id, username };
+    const user = { id: existingUser[0].id, username, password };
     const token = jwt.sign(user, secretKey); // Replace 'your_secret_key' with your actual secret key
-    res.status(200).json({ success: true, message: "Login successful.", user });
+    res.status(200).json({ success: true, message: "Login successful.", user,secretKey });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error: "Internal Server Error" });
