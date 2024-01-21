@@ -6,8 +6,6 @@ import mysql2 from "mysql2";
 import sharp from "sharp";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { promisify } from "util";
-
 
 const db = mysql2.createConnection({
   host: "localhost",
@@ -36,7 +34,12 @@ if (!fs.existsSync(outputFolder)) {
   fs.mkdirSync(outputFolder);
 }
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -194,8 +197,6 @@ app.post("/users", async (req, res) => {
   }
 });
 
-const asyncQuery = promisify(db.promise().query).bind(db.promise());
-
 //fetch data from login
 // Your server-side code
 app.post("/login", async (req, res) => {
@@ -228,8 +229,19 @@ app.post("/login", async (req, res) => {
 
     // If username and password are correct, you can consider the user logged in
     const user = { id: existingUser[0].id, username, password };
-    const token = jwt.sign(user, secretKey); // Replace 'your_secret_key' with your actual secret key
-    res.status(200).json({ success: true, message: "Login successful.", user,secretKey });
+    const token = jwt.sign(user, secretKey);
+
+    res.cookie("authToken", token, { httpOnly: true, sameSite: "strict" });
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Login successful.",
+        user,
+        secretKey,
+        token,
+      });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error: "Internal Server Error" });
