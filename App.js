@@ -203,7 +203,10 @@ app.post("/users", async (req, res) => {
     });
     console.log(result);
   } catch (error) {
-    console.error("Error inserting user into database/ Failed to Sign in:", error);
+    console.error(
+      "Error inserting user into database/ Failed to Sign in:",
+      error
+    );
     res.status(500).send("Internal Server Error");
   }
 });
