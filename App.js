@@ -6,6 +6,11 @@ import mysql2 from "mysql2";
 import sharp from "sharp";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
+const app = express();
+const port = 8080;
+
+const outputFolder = "output";
 
 const db = mysql2.createConnection({
   host: "localhost",
@@ -17,6 +22,52 @@ const db = mysql2.createConnection({
   queueLimit: 0,
 });
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "avishkarkakde2004@gmail.com",
+    pass: "Avishkar*2004",
+  },
+});
+
+app.post("/forgotpassword", async (req, res) => {
+  const { email } = req.body;
+
+  // Check if the email exists in the database
+  const [user] = await db
+    .promise()
+    .execute("SELECT * FROM users WHERE email = ?", [email]);
+
+  if (user.length === 0) {
+    return res.status(404).json({ error: "Email not found." });
+  }
+
+  // Generate random OTP
+  const otp = Math.floor(100000 + Math.random() * 900000);
+
+  // Save the OTP in the database or any other storage mechanism if needed
+  // For simplicity, let's assume you have a 'users' table with a column 'otp'
+  await db
+    .promise()
+    .execute("UPDATE users SET otp = ? WHERE email = ?", [otp, email]);
+
+  // Compose email message
+  const mailOptions = {
+    from: "your_email@gmail.com",
+    to: email,
+    subject: "Forgot Password OTP",
+    text: `Your OTP is: ${otp}`,
+  };
+
+  // Send email
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).json({ error: "Error sending OTP via email." });
+    }
+    res.status(200).json({ success: true, message: "OTP sent successfully." });
+  });
+});
+
 db.connect((err) => {
   if (err) {
     console.error("Error connecting to MySQL database:", err);
@@ -24,11 +75,6 @@ db.connect((err) => {
   }
   console.log("Connected to MySQL database");
 });
-
-const app = express();
-const port = 8080;
-
-const outputFolder = "output";
 
 if (!fs.existsSync(outputFolder)) {
   fs.mkdirSync(outputFolder);
