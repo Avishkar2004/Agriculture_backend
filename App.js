@@ -98,7 +98,7 @@ app.post("/resetpassword", async (req, res) => {
     }
 
     // Check if OTP is valid (numeric and not more than 6 digits)
-    if (!(/^\d{1,6}$/).test(otp)) {
+    if (!/^\d{1,6}$/.test(otp)) {
       return res.status(400).json({ error: "Invalid OTP format." });
     }
 
@@ -109,27 +109,29 @@ app.post("/resetpassword", async (req, res) => {
     if (user.length === 0) {
       return res.status(404).json({ error: "Invalid OTP." });
     }
-
+    // Get the username associated with the user
+    const username = user[0].username;
     // Update the user's password in the database
     await db
       .promise()
-      .execute("UPDATE users SET password = ?, confirmPassword = ?, otp = NULL WHERE otp = ?", [
-        newPassword,
-        newPassword,
-        otp,
-      ]);
-
+      .execute(
+        "UPDATE users SET password = ?, confirmPassword = ?, otp = NULL WHERE otp = ?",
+        [newPassword, newPassword, otp]
+      );
     res
       .status(200)
-      .json({ success: true, message: "Password reset successfully." });
+      .json({
+        success: true,
+        message: "Password reset successfully.",
+        username,
+      });
+    // Log the username upon successful password reset
+    console.log("Username:", username);
   } catch (error) {
     console.error("Reset password error:", error);
     res.status(500).json({ error: "Internal server error." });
   }
 });
-
-
-
 
 db.connect((err) => {
   if (err) {
