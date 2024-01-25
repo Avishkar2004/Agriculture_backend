@@ -9,6 +9,14 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 const app = express();
 const port = 8080;
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 const outputFolder = "output";
 
@@ -24,49 +32,104 @@ const db = mysql2.createConnection({
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  user: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: "avishkarkakde2004@gmail.com",
-    pass: "Avishkar*2004",
+    pass: "axgu dwwt simr twfe",
   },
 });
 
 app.post("/forgotpassword", async (req, res) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  // Check if the email exists in the database
-  const [user] = await db
-    .promise()
-    .execute("SELECT * FROM users WHERE email = ?", [email]);
-
-  if (user.length === 0) {
-    return res.status(404).json({ error: "Email not found." });
-  }
-
-  // Generate random OTP
-  const otp = Math.floor(100000 + Math.random() * 900000);
-
-  // Save the OTP in the database or any other storage mechanism if needed
-  // For simplicity, let's assume you have a 'users' table with a column 'otp'
-  await db
-    .promise()
-    .execute("UPDATE users SET otp = ? WHERE email = ?", [otp, email]);
-
-  // Compose email message
-  const mailOptions = {
-    from: "your_email@gmail.com",
-    to: email,
-    subject: "Forgot Password OTP",
-    text: `Your OTP is: ${otp}`,
-  };
-
-  // Send email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return res.status(500).json({ error: "Error sending OTP via email." });
+    if (!email) {
+      return res.status(400).send("Email is required");
     }
-    res.status(200).json({ success: true, message: "OTP sent successfully." });
-  });
+
+    // Check if the email exists in the database
+    const [user] = await db
+      .promise()
+      .execute("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (user.length === 0) {
+      return res.status(404).json({ error: "Email not found." });
+    }
+
+    // Generate random OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    // Save the OTP in the database
+    await db
+      .promise()
+      .execute("UPDATE users SET otp = ? WHERE email = ?", [otp, email]);
+
+    // Compose email message
+    const mailOptions = {
+      from: "kakdevicky476@gmail.com",
+      to: email,
+      subject: "Forgot Password OTP",
+      text: `Your OTP is: ${otp}`,
+    };
+
+    // Send email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending OTP via email:", error);
+        return res.status(500).json({ error: "Error sending OTP via email." });
+      }
+      res
+        .status(200)
+        .json({ success: true, message: "OTP sent successfully." });
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
 });
+app.post("/resetpassword", async (req, res) => {
+  try {
+    const { otp, newPassword } = req.body;
+
+    if (!otp || !newPassword) {
+      return res.status(400).send("OTP and new password are required");
+    }
+
+    // Check if OTP is valid (numeric and not more than 6 digits)
+    if (!(/^\d{1,6}$/).test(otp)) {
+      return res.status(400).json({ error: "Invalid OTP format." });
+    }
+
+    // Check if the OTP matches in the database
+    const [user] = await db
+      .promise()
+      .execute("SELECT * FROM users WHERE otp = ?", [otp]);
+    if (user.length === 0) {
+      return res.status(404).json({ error: "Invalid OTP." });
+    }
+
+    // Update the user's password in the database
+    await db
+      .promise()
+      .execute("UPDATE users SET password = ?, confirmPassword = ?, otp = NULL WHERE otp = ?", [
+        newPassword,
+        newPassword,
+        otp,
+      ]);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully." });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+
+
 
 db.connect((err) => {
   if (err) {
@@ -79,15 +142,6 @@ db.connect((err) => {
 if (!fs.existsSync(outputFolder)) {
   fs.mkdirSync(outputFolder);
 }
-
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 class Products {
   constructor(name, description, salePrice, reviews, stockStatus, image, to) {
