@@ -33,7 +33,7 @@ const db = mysql2.createConnection({
 const transporter = nodemailer.createTransport({
   service: "gmail",
   user: "smtp.gmail.com",
-  port: 465,
+  port: 587,
   secure: true,
   auth: {
     user: "avishkarkakde2004@gmail.com",
@@ -41,21 +41,22 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+//this is for sending opt
 app.post("/forgotpassword", async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).send("Email is required");
+    // Server-side email format validation
+    if (!email || !email.includes("@gmail.com")) {
+      return res.status(400).send("Please provide a valid Gmail address.");
     }
 
     // Check if the email exists in the database
     const [user] = await db
       .promise()
       .execute("SELECT * FROM users WHERE email = ?", [email]);
-
     if (user.length === 0) {
-      return res.status(404).json({ error: "Email not found." });
+      return res.status(404).json({ error: "Invalid email." });
     }
 
     // Generate random OTP
@@ -66,7 +67,7 @@ app.post("/forgotpassword", async (req, res) => {
       .promise()
       .execute("UPDATE users SET otp = ? WHERE email = ?", [otp, email]);
 
-    // Compose email message
+    // Compose email message and send it
     const mailOptions = {
       from: "kakdevicky476@gmail.com",
       to: email,
@@ -74,7 +75,6 @@ app.post("/forgotpassword", async (req, res) => {
       text: `Your OTP is: ${otp}`,
     };
 
-    // Send email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error sending OTP via email:", error);
@@ -90,10 +90,10 @@ app.post("/forgotpassword", async (req, res) => {
   }
 });
 
+//this is for reset password
 app.post("/resetpassword", async (req, res) => {
   try {
     const { otp, newPassword } = req.body;
-
     if (!otp || !newPassword) {
       return res.status(400).send("OTP and new password are required");
     }
@@ -110,8 +110,11 @@ app.post("/resetpassword", async (req, res) => {
     if (user.length === 0) {
       return res.status(404).json({ error: "Invalid OTP." });
     }
-    // Get the username associated with the user
-    const username = user[0].username;
+
+    //generate a random secret key
+    const secretKey = crypto.randomBytes(32).toString("hex");
+    // console.log("Secret Key:", secretKey);
+
     // Update the user's password in the database
     await db
       .promise()
@@ -119,15 +122,18 @@ app.post("/resetpassword", async (req, res) => {
         "UPDATE users SET password = ?, confirmPassword = ?, otp = NULL WHERE otp = ?",
         [newPassword, newPassword, otp]
       );
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Password reset successfully.",
-        username,
-      });
-    // Log the username upon successful password reset
-    console.log("Username:", username);
+
+    // Sign a JWT token with the user's id and username
+    const payload = { id: user[0].id, username: user[0].username };
+    const token = jwt.sign(payload, secretKey);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully.",
+      username: user[0].username,
+      token: token,
+      secretKey,
+    });
   } catch (error) {
     console.error("Reset password error:", error);
     res.status(500).json({ error: "Internal server error." });
@@ -342,7 +348,7 @@ app.post("/login", async (req, res) => {
 
     // Generate a random secret key
     const secretKey = crypto.randomBytes(32).toString("hex");
-    console.log("Secret Key:", secretKey);
+    // console.log("Secret Key:", secretKey);
 
     // If username and password are correct, you can consider the user logged in
     const user = { id: existingUser[0].id, username, password };
