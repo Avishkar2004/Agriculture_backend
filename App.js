@@ -89,6 +89,7 @@ app.post("/forgotpassword", async (req, res) => {
     res.status(500).json({ error: "Internal server error." });
   }
 });
+
 app.post("/resetpassword", async (req, res) => {
   try {
     const { otp, newPassword } = req.body;
@@ -498,7 +499,6 @@ app.get("/cart", (req, res) => {
 });
 
 // For inserting data
-
 app.post("/cart", (req, res) => {
   try {
     const newItem = req.body;
