@@ -9,6 +9,10 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 const app = express();
 const port = 8080;
+
+import { resetPasswordHandler } from "./PasswordManager/resetPassword.js";
+import { userHandler } from "./Users/signup.js";
+
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -29,6 +33,14 @@ const db = mysql2.createConnection({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
+// db.connect((err) => {
+//   if (err) {
+//     console.error("Error connecting to MySQL database:", err);
+//     return;
+//   }
+//   console.log("Connected to MySQL database");
+// });
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -90,63 +102,8 @@ app.post("/forgotpassword", async (req, res) => {
   }
 });
 
-//this is for reset password
-app.post("/resetpassword", async (req, res) => {
-  try {
-    const { otp, newPassword } = req.body;
-    if (!otp || !newPassword) {
-      return res.status(400).send("OTP and new password are required");
-    }
-
-    // Check if OTP is valid (numeric and not more than 6 digits)
-    if (!/^\d{1,6}$/.test(otp)) {
-      return res.status(400).json({ error: "Invalid OTP format." });
-    }
-
-    // Check if the OTP matches in the database
-    const [user] = await db
-      .promise()
-      .execute("SELECT * FROM users WHERE otp = ?", [otp]);
-    if (user.length === 0) {
-      return res.status(404).json({ error: "Invalid OTP." });
-    }
-
-    //generate a random secret key
-    const secretKey = crypto.randomBytes(32).toString("hex");
-    // console.log("Secret Key:", secretKey);
-
-    // Update the user's password in the database
-    await db
-      .promise()
-      .execute(
-        "UPDATE users SET password = ?, confirmPassword = ?, otp = NULL WHERE otp = ?",
-        [newPassword, newPassword, otp]
-      );
-
-    // Sign a JWT token with the user's id and username
-    const payload = { id: user[0].id, username: user[0].username };
-    const token = jwt.sign(payload, secretKey);
-
-    res.status(200).json({
-      success: true,
-      message: "Password reset successfully.",
-      username: user[0].username,
-      token: token,
-      secretKey,
-    });
-  } catch (error) {
-    console.error("Reset password error:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error("Error connecting to MySQL database:", err);
-    return;
-  }
-  console.log("Connected to MySQL database");
-});
+// this is for reset password
+app.post("/resetpassword", resetPasswordHandler);
 
 if (!fs.existsSync(outputFolder)) {
   fs.mkdirSync(outputFolder);
@@ -268,60 +225,10 @@ const adminController = {
 };
 
 // Endpoint for handling user signup/createAcc
-app.post("/users", async (req, res) => {
-  const { username, email, password, confirmPassword } = req.body;
-  console.log("Request Body:", req.body); // Log the entire request body
-  try {
-    // check if the username already exists
-    const [existingUser] = await db
-      .promise()
-      .execute("SELECT * FROM users WHERE username = ?", [username]);
-
-    if (existingUser.length > 0) {
-      // If username already exists, return a message and prompt user to choose another
-      return res
-        .status(400)
-        .json({ message: "Username is already taken. Please choose another." });
-    }
-
-    // if the username is not taken, proceed with the insertion
-    const [result] = await db
-      .promise()
-      .execute(
-        "INSERT INTO users (username, email, password, confirmpassword) VALUES (?, ?, ?, ?)",
-        [username, email, password, confirmPassword]
-      );
-
-    const user = { id: result.insertId, username, password }; // Assuming your result object has an insertId property
-    // Generate a random secret key
-    const secretKey = crypto.randomBytes(32).toString("hex");
-    console.log("Secret Key:", secretKey);
-
-    // If the insertion is successful, return a success message along with user details
-
-    const token = jwt.sign(user, secretKey, { expiresIn: "10days" }); // Set expiration time
-    res.cookie("authToken", token, { httpOnly: true, sameSite: "strict" });
-    // Do not include the password in the response
-    // delete user.password;
-    res.status(200).json({
-      success: true,
-      message: "Login successful.",
-      user,
-      secretKey,
-      token,
-    });
-    console.log(result);
-  } catch (error) {
-    console.error(
-      "Error inserting user into database/ Failed to Sign in:",
-      error
-    );
-    res.status(500).send("Internal Server Error");
-  }
-});
+app.post("/users", userHandler);
 
 //fetch data from login
-// Your server-side code
+// Your server-side code(remail)
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -369,7 +276,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// for fetching product data
+// for fetching product data (Fungicides )
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, result) => {
     if (err) {
