@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
-import mysql2 from "mysql2";
 import sharp from "sharp";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -12,6 +11,7 @@ const port = 8080;
 
 import { resetPasswordHandler } from "./PasswordManager/resetPassword.js";
 import { userHandler } from "./Users/signup.js";
+import { db } from "./db.js";
 
 app.use(
   cors({
@@ -23,24 +23,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 const outputFolder = "output";
-
-const db = mysql2.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "agrisite",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-
-// db.connect((err) => {
-//   if (err) {
-//     console.error("Error connecting to MySQL database:", err);
-//     return;
-//   }
-//   console.log("Connected to MySQL database");
-// });
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -426,13 +408,11 @@ app.post("/cart", (req, res) => {
         INSERT INTO cart (id, name, price, image, quantity)
         VALUES (?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
-        name = VALUES(name),w
+        name = VALUES(name),
         price = VALUES(price),
         image = VALUES(image),
         quantity = VALUES(quantity)
-        
-          `;
-
+        `;
     db.query(
       insertOrUpdateQuery,
       [newItem.id, newItem.name, newItem.price, binaryImage, newItem.quantity],
