@@ -385,7 +385,7 @@ app.get("/Insecticide", (req, res) => {
   });
 });
 
-// This is for cart
+// This is for cart(cart api)
 app.get("/cart", (req, res) => {
   db.query("SELECT * FROM cart", (err, results) => {
     if (err) {
