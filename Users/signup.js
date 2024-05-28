@@ -1,6 +1,6 @@
-import { db } from "../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { db } from "../db.js";
 
 export const userHandler = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;

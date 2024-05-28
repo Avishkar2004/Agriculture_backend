@@ -1,11 +1,11 @@
-import express from "express";
 import cors from "cors";
-import { v4 as uuidv4 } from "uuid";
-import fs from "fs";
-import sharp from "sharp";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import express from "express";
+import fs from "fs";
+import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import sharp from "sharp";
+import { v4 as uuidv4 } from "uuid";
 const app = express();
 const port = 8080;
 

@@ -1,6 +1,6 @@
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { db } from "../db.js";
-import crypto from "crypto"
-import jwt from "jsonwebtoken"
 
 export const resetPasswordHandler = async (req, res) => {
   try {
