@@ -5,8 +5,8 @@
   "main": "App.js",
   "scripts": {
     "build": "esbuild src/index.js --bundle --outdir=public --minify",
-    "start": "nodemon app.js",
-    "servers": "concurrently \"npm run start\" \"cd ../frontend && npm run start\""
+    "start": "node app.js",
+    "dev" : "nodemon app.js"
   },
   "type": "module",
   "engines": {

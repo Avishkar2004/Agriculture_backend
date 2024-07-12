@@ -4,7 +4,7 @@ export const db = mysql2.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "agrisite",
+  database: "ecommerce",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
