@@ -326,7 +326,7 @@ app.get("/organicproduct", (req, res) => {
 
 // This is for Micro Nutrient
 app.get("/micro-nutrients", (req, res) => {
-  db.query("SELECT * FROM `micro-nutrients`", (err, results) => {
+  db.query("SELECT * FROM `micro_nutrients`", (err, results) => {
     if (err) {
       console.error(err);
       res
