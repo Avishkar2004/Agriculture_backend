@@ -347,6 +347,34 @@ app.get("/micro-nutrients", (req, res) => {
   });
 });
 
+app.get("/products/next/:id", (req, res) => {
+  const currentId = parseInt(req.params.id);
+  db.query(
+    "SELECT * FROM `micro_nutrients` WHERE id > ? ORDER BY id ASC LIMIT 1",
+    [currentId],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        res
+          .status(500)
+          .json({ error: "Internal Server errorr in fetching next product" });
+        return;
+      }
+
+      if (results.length === 0) {
+        res.status(404).json({ error: "No next product found" });
+        return;
+      }
+
+      const nextProduct = results[0];
+      nextProduct.image = Buffer.from(nextProduct.image, "binary").toString(
+        "base64"
+      );
+      res.json(nextProduct);
+    }
+  );
+});
+
 // This is for Insecticide
 app.get("/Insecticide", (req, res) => {
   db.query("SELECT * FROM Insecticide", (err, results) => {

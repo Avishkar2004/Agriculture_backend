@@ -1,0 +1,16 @@
+CREATE TABLE MicroNutrients (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image LONGBLOB,
+    price_small DECIMAL(10, 2),
+    salePrice DECIMAL(10, 2),
+    review_50 INT,
+    review_100 INT,
+    save_50 DECIMAL(10, 2),
+    save_100 DECIMAL(10, 2),
+    stockStatus ENUM('In Stock', 'Out of Stock'),
+    small_50 VARCHAR(50),
+    big_100 VARCHAR(50)
+);
+
