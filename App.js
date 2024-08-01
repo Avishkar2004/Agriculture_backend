@@ -1,7 +1,6 @@
 import cors from "cors";
 import crypto from "crypto";
 import express from "express";
-import fs from "fs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import sharp from "sharp";
@@ -22,7 +21,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const outputFolder = "output";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -87,124 +85,46 @@ app.post("/forgotpassword", async (req, res) => {
 // this is for reset password
 app.post("/resetpassword", resetPasswordHandler);
 
-if (!fs.existsSync(outputFolder)) {
-  fs.mkdirSync(outputFolder);
-}
 
-class Products {
-  constructor(name, description, salePrice, reviews, stockStatus, image, to) {
-    this.id = null;
-    this.name = name;
-    this.description = description;
-    this.salePrice = salePrice;
-    this.reviews = reviews;
-    this.stockStatus = stockStatus;
-    this.image = image;
-    this.to = to;
+//! For Search :-
+
+app.get("/search", async (req, res) => {
+  const { q } = req.query;
+  if (!q) {
+    return res.status(400).json({ error: "Search query is required" });
   }
 
-  save(existingProducts) {
-    this.id = String(uuidv4());
-    existingProducts.push(this);
-    fs.writeFile("data.json", JSON.stringify(existingProducts), (err) => {
-      console.log(err);
+  try {
+    const queries = [
+      db.promise().execute("SELECT * FROM products WHERE name LIKE ?", [`%${q}%`]),
+      db.promise().execute("SELECT * FROM plantgrowthregulator WHERE name LIKE ?", [`%${q}%`]),
+      db.promise().execute("SELECT * FROM organicproduct WHERE name LIKE ?", [`%${q}%`]),
+      db.promise().execute("SELECT * FROM micro_nutrients WHERE name LIKE ?", [`%${q}%`]),
+      db.promise().execute("SELECT * FROM insecticide WHERE name LIKE ?", [`%${q}%`])
+    ];
+
+    const [products, plantGrowthRegulators, organicProducts, microNutrients, insecticides] = await Promise.all(queries);
+
+    const results = [
+      ...products[0],
+      ...plantGrowthRegulators[0],
+      ...organicProducts[0],
+      ...microNutrients[0],
+      ...insecticides[0]
+    ];
+
+    const productsWithBase64Images = results.map((product) => {
+      const base64Image = Buffer.from(product.image, "binary").toString("base64");
+      return { ...product, image: base64Image };
     });
+
+    res.json(productsWithBase64Images);
+  } catch (error) {
+    console.error("Error fetching search results:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  static fetchAll(cb) {
-    getProductsFromFile(cb);
-  }
-
-  static findById(id, cb) {
-    getProductsFromFile((products) => {
-      const product = products.find((p) => p.id === id);
-      cb(product);
-    });
-  }
-}
-
-const getProductsFromFile = (cb) => {
-  fs.readFile("data.json", (err, fileContent) => {
-    if (err) {
-      cb([]);
-    } else {
-      cb(JSON.parse(fileContent));
-    }
-  });
-};
-
-fs.readdir("images", (err, files) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  files.forEach((file) => {
-    const formats = ["avif", "bin"];
-    if (
-      file.endsWith(".jpg") ||
-      file.endsWith(".jpeg") ||
-      file.endsWith(".png") ||
-      file.endsWith(".avif") ||
-      file.endsWith(".jpg") ||
-      file.endsWith(".webp")
-    ) {
-      const inputPath = `images/${file}`;
-      const name = file.substring(0, file.lastIndexOf("."));
-
-      formats.forEach((format) => {
-        const outputPath = `output/${name}.${format}`;
-
-        if (!fs.existsSync(outputPath)) {
-          sharp(inputPath)
-            .toFormat(format, { quality: 80 })
-            .toFile(outputPath, (err) => {
-              if (err) {
-                console.error(err);
-              } else {
-                console.log(`${name}.${format} saved`);
-              }
-            });
-        }
-      });
-    }
-  });
 });
 
-const adminController = {
-  getIndex: (req, res) => {
-    res.send("Product Home Route");
-  },
-
-  getProducts: (req, res) => {
-    Products.fetchAll((products) => {
-      res.json(products);
-    });
-  },
-
-  getProduct: (req, res) => {
-    const productId = req.params.productId;
-    Products.findById(productId, (product) => {
-      res.json(product);
-    });
-  },
-
-  postAddProduct: (req, res) => {
-    const { name, description, salePrice, reviews, stockStatus, image, to } =
-      req.body;
-    const product = new Products(
-      name,
-      description,
-      salePrice,
-      reviews,
-      stockStatus,
-      image,
-      to
-    );
-    product.save();
-    res.json({ msg: "Product Added" });
-  },
-};
 
 // Endpoint for handling user signup/createAcc
 app.post("/users", userHandler);
@@ -461,11 +381,6 @@ app.post("/cart", (req, res) => {
 });
 
 const adminRoute = express.Router();
-
-adminRoute.get("/", adminController.getIndex);
-adminRoute.get("/products", adminController.getProducts);
-adminRoute.get("/products/:productId", adminController.getProduct);
-adminRoute.post("/add-product", adminController.postAddProduct);
 
 app.use("/", adminRoute);
 
