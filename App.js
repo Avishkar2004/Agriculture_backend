@@ -21,7 +21,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   user: "smtp.gmail.com",
@@ -85,7 +84,6 @@ app.post("/forgotpassword", async (req, res) => {
 // this is for reset password
 app.post("/resetpassword", resetPasswordHandler);
 
-
 //! For Search :-
 
 app.get("/search", async (req, res) => {
@@ -96,25 +94,45 @@ app.get("/search", async (req, res) => {
 
   try {
     const queries = [
-      db.promise().execute("SELECT * FROM products WHERE name LIKE ?", [`%${q}%`]),
-      db.promise().execute("SELECT * FROM plantgrowthregulator WHERE name LIKE ?", [`%${q}%`]),
-      db.promise().execute("SELECT * FROM organicproduct WHERE name LIKE ?", [`%${q}%`]),
-      db.promise().execute("SELECT * FROM micro_nutrients WHERE name LIKE ?", [`%${q}%`]),
-      db.promise().execute("SELECT * FROM insecticide WHERE name LIKE ?", [`%${q}%`])
+      db
+        .promise()
+        .execute("SELECT * FROM products WHERE name LIKE ?", [`%${q}%`]),
+      db
+        .promise()
+        .execute("SELECT * FROM plantgrowthregulator WHERE name LIKE ?", [
+          `%${q}%`,
+        ]),
+      db
+        .promise()
+        .execute("SELECT * FROM organicproduct WHERE name LIKE ?", [`%${q}%`]),
+      db
+        .promise()
+        .execute("SELECT * FROM micro_nutrients WHERE name LIKE ?", [`%${q}%`]),
+      db
+        .promise()
+        .execute("SELECT * FROM insecticide WHERE name LIKE ?", [`%${q}%`]),
     ];
 
-    const [products, plantGrowthRegulators, organicProducts, microNutrients, insecticides] = await Promise.all(queries);
+    const [
+      products,
+      plantGrowthRegulators,
+      organicProducts,
+      microNutrients,
+      insecticides,
+    ] = await Promise.all(queries);
 
     const results = [
       ...products[0],
       ...plantGrowthRegulators[0],
       ...organicProducts[0],
       ...microNutrients[0],
-      ...insecticides[0]
+      ...insecticides[0],
     ];
 
     const productsWithBase64Images = results.map((product) => {
-      const base64Image = Buffer.from(product.image, "binary").toString("base64");
+      const base64Image = Buffer.from(product.image, "binary").toString(
+        "base64"
+      );
       return { ...product, image: base64Image };
     });
 
@@ -124,7 +142,6 @@ app.get("/search", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Endpoint for handling user signup/createAcc
 app.post("/users", userHandler);
