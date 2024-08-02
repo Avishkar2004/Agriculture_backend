@@ -6,7 +6,7 @@
   "scripts": {
     "build": "esbuild src/index.js --bundle --outdir=public --minify",
     "start": "node app.js",
-    "dev" : "nodemon app.js"
+    "dev": "nodemon app.js"
   },
   "type": "module",
   "engines": {
