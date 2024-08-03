@@ -1,16 +1,16 @@
 import cors from "cors";
-import crypto from "crypto";
 import express from "express";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
-import sharp from "sharp";
-import { v4 as uuidv4 } from "uuid";
+import "dotenv/config";
+import cookieParser from "cookie-parser"; // Add this to parse cookies
+import "dotenv/config";
 const app = express();
-const port = 8080;
 
 import { resetPasswordHandler } from "./PasswordManager/resetPassword.js";
 import { userHandler } from "./Users/signup.js";
 import { db } from "./db.js";
+import { authenticateToken } from "./middleware/User.js";
 
 app.use(
   cors({
@@ -20,6 +20,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser()); // Use cookie parser middleware
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -146,8 +147,6 @@ app.get("/search", async (req, res) => {
 // Endpoint for handling user signup/createAcc
 app.post("/users", userHandler);
 
-//fetch data from login
-// Your server-side code(remail)
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -156,27 +155,13 @@ app.post("/login", async (req, res) => {
       .promise()
       .execute("SELECT * FROM users WHERE username = ?", [username]);
     if (existingUser.length === 0 || existingUser[0].password !== password) {
-      // both cases are treated the same  wat to provide a generic error message
       return res
         .status(401)
         .json({ error: "Both username and password are wrong." });
     }
-    if (existingUser.length === 0) {
-      return res.status(401).json({ error: "Username not found." });
-    }
-    // Check if the provided password matches the stored password
-    if (existingUser[0].password !== password) {
-      return res.status(401).json({
-        error:
-          "Sorry, your password was incorrect. Please double-check your password.",
-      });
-    }
 
     // Generate a random secret key
-    const secretKey = crypto.randomBytes(32).toString("hex");
-    // console.log("Secret Key:", secretKey);
-
-    // If username and password are correct, you can consider the user logged in
+    const secretKey = process.env.SECRET_KEY; // Ensure you have this in your .env file
     const user = { id: existingUser[0].id, username, password };
     const token = jwt.sign(user, secretKey);
 
@@ -186,7 +171,6 @@ app.post("/login", async (req, res) => {
       success: true,
       message: "Login successful.",
       user,
-      secretKey,
       token,
     });
   } catch (error) {
@@ -194,7 +178,6 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 // for fetching product data (Fungicides )
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, result) => {
@@ -358,8 +341,8 @@ app.get("/cart", (req, res) => {
   });
 });
 
-// For inserting data
-app.post("/cart", (req, res) => {
+// For inserting data (Protected route)
+app.post("/cart", authenticateToken, (req, res) => {
   try {
     const newItem = req.body;
     console.log("Received request to add to cart:", newItem);
@@ -397,6 +380,23 @@ app.post("/cart", (req, res) => {
   }
 });
 
+
+app.delete("/cart/:id", (req, res) => {
+  const itemId = req.params.id
+
+  const deleteQuery = "DELETE FROM cart WHERE id = ?";
+  db.query(deleteQuery, [itemId], (err, results) => {
+    if(err) {
+      console.error("Error deleting cart item:", err)
+      return res.status(500).json({error :"internal server error"})
+    }
+    if(res.affectedRows === 0) {
+      return res.status(404).json({error :"item not found in cart"})
+    }
+    res.json({ success: true, message: "Item removed from cart" });
+  })
+})
+
 const adminRoute = express.Router();
 
 app.use("/", adminRoute);
@@ -405,4 +405,6 @@ app.get("/", (req, res) => {
   res.send("Hello world");
 });
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(process.env.PORT, () =>
+  console.log(`Server running on port ${process.env.PORT}`)
+);
