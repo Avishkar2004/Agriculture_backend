@@ -380,22 +380,21 @@ app.post("/cart", authenticateToken, (req, res) => {
   }
 });
 
-
 app.delete("/cart/:id", (req, res) => {
-  const itemId = req.params.id
+  const itemId = req.params.id;
 
   const deleteQuery = "DELETE FROM cart WHERE id = ?";
   db.query(deleteQuery, [itemId], (err, results) => {
-    if(err) {
-      console.error("Error deleting cart item:", err)
-      return res.status(500).json({error :"internal server error"})
+    if (err) {
+      console.error("Error deleting cart item:", err);
+      return res.status(500).json({ error: "internal server error" });
     }
-    if(res.affectedRows === 0) {
-      return res.status(404).json({error :"item not found in cart"})
+    if (res.affectedRows === 0) {
+      return res.status(404).json({ error: "item not found in cart" });
     }
     res.json({ success: true, message: "Item removed from cart" });
-  })
-})
+  });
+});
 
 const adminRoute = express.Router();
 
