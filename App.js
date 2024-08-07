@@ -353,17 +353,25 @@ app.post("/cart", authenticateToken, (req, res) => {
       : null;
 
     const insertOrUpdateQuery = `
-        INSERT INTO cart (id, name, price, image, quantity)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO cart (id, name, price, image, quantity, productType)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
         name = VALUES(name),
         price = VALUES(price),
         image = VALUES(image),
-        quantity = VALUES(quantity)
+        quantity = VALUES(quantity),
+        productType = VALUES(productType)
         `;
     db.query(
       insertOrUpdateQuery,
-      [newItem.id, newItem.name, newItem.price, binaryImage, newItem.quantity],
+      [
+        newItem.id,
+        newItem.name,
+        newItem.price,
+        binaryImage,
+        newItem.quantity,
+        newItem.productType
+      ],
       (err, results) => {
         if (err) {
           console.error("Error inserting or updating cart item:", err);
@@ -379,6 +387,7 @@ app.post("/cart", authenticateToken, (req, res) => {
     res.status(500).json({ error: "Internal server error in Cart" });
   }
 });
+
 
 app.delete("/cart/:id", (req, res) => {
   const itemId = req.params.id;
