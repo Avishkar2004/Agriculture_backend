@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 export const authenticateToken = (req, res, next) => {
-  const token = req.cookies.authToken;  // Make sure the key matches the one you set in the login route
+  const token = req.cookies.authToken; // Make sure the key matches the one you set in the login route
 
   if (!token) {
     return res.status(401).json({ message: "Access Denied" });

@@ -315,9 +315,9 @@ app.get("/Insecticide", (req, res) => {
   });
 });
 
-// This is for cart(cart api)
-app.get("/cart", (req, res) => {
-  db.query("SELECT * FROM cart", (err, results) => {
+app.get("/cart", authenticateToken, (req, res) => {
+  const userId = req.user.id; // Get user ID from the authenticated user
+  db.query("SELECT * FROM cart WHERE user_id = ?", [userId], (err, results) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: "Internal server error in Cart" });
@@ -345,6 +345,7 @@ app.get("/cart", (req, res) => {
 app.post("/cart", authenticateToken, (req, res) => {
   try {
     const newItem = req.body;
+    const userId = req.user.id; // Get user ID from the authenticated user
     console.log("Received request to add to cart:", newItem);
 
     // Convert base64 image to buffer
@@ -353,8 +354,8 @@ app.post("/cart", authenticateToken, (req, res) => {
       : null;
 
     const insertOrUpdateQuery = `
-        INSERT INTO cart (id, name, price, image, quantity, productType)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO cart (id, name, price, image, quantity, productType, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
         name = VALUES(name),
         price = VALUES(price),
@@ -370,7 +371,8 @@ app.post("/cart", authenticateToken, (req, res) => {
         newItem.price,
         binaryImage,
         newItem.quantity,
-        newItem.productType
+        newItem.productType,
+        userId // Add user ID to the query
       ],
       (err, results) => {
         if (err) {
@@ -389,16 +391,17 @@ app.post("/cart", authenticateToken, (req, res) => {
 });
 
 
-app.delete("/cart/:id", (req, res) => {
+app.delete("/cart/:id", authenticateToken, (req, res) => {
   const itemId = req.params.id;
+  const userId = req.user.id; // Get user ID from the authenticated user
 
-  const deleteQuery = "DELETE FROM cart WHERE id = ?";
-  db.query(deleteQuery, [itemId], (err, results) => {
+  const deleteQuery = "DELETE FROM cart WHERE id = ? AND user_id = ?";
+  db.query(deleteQuery, [itemId, userId], (err, results) => {
     if (err) {
       console.error("Error deleting cart item:", err);
       return res.status(500).json({ error: "internal server error" });
     }
-    if (res.affectedRows === 0) {
+    if (results.affectedRows === 0) {
       return res.status(404).json({ error: "item not found in cart" });
     }
     res.json({ success: true, message: "Item removed from cart" });
