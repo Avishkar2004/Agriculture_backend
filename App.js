@@ -11,6 +11,8 @@ import { resetPasswordHandler } from "./PasswordManager/resetPassword.js";
 import { userHandler } from "./Users/signup.js";
 import { db } from "./db.js";
 import { authenticateToken } from "./middleware/User.js";
+import { loginHandler } from "./Users/login.js";
+import { logout } from "./Users/logout.js";
 
 app.use(
   cors({
@@ -82,6 +84,14 @@ app.post("/forgotpassword", async (req, res) => {
   }
 });
 
+// Endpoint for handling user signup/createAcc
+app.post("/users", userHandler);
+
+app.post("/login", loginHandler)
+
+app.post("/logout", logout)
+
+
 // this is for reset password
 app.post("/resetpassword", resetPasswordHandler);
 
@@ -144,40 +154,6 @@ app.get("/search", async (req, res) => {
   }
 });
 
-// Endpoint for handling user signup/createAcc
-app.post("/users", userHandler);
-
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    // Check if the username exists in the database
-    const [existingUser] = await db
-      .promise()
-      .execute("SELECT * FROM users WHERE username = ?", [username]);
-    if (existingUser.length === 0 || existingUser[0].password !== password) {
-      return res
-        .status(401)
-        .json({ error: "Both username and password are wrong." });
-    }
-
-    // Generate a random secret key
-    const secretKey = process.env.SECRET_KEY; // Ensure you have this in your .env file
-    const user = { id: existingUser[0].id, username, password };
-    const token = jwt.sign(user, secretKey);
-
-    res.cookie("authToken", token, { httpOnly: true, sameSite: "strict" });
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful.",
-      user,
-      token,
-    });
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
 // for fetching product data (Fungicides )
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, result) => {
