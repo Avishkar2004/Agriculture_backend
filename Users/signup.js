@@ -29,12 +29,19 @@ export const userHandler = async (req, res) => {
     const user = { id: result.insertId, username, password }; // Assuming your result object has an insertId property
     // Generate a random secret key
     const secretKey = crypto.randomBytes(32).toString("hex");
-    console.log("Secret Key:", secretKey);
+    // console.log("Secret Key:", secretKey);
 
     // If the insertion is successful, return a success message along with user details
 
-    const token = jwt.sign(user, secretKey, { expiresIn: "10days" }); // Set expiration time
-    res.cookie("authToken", token, { httpOnly: true, sameSite: "strict" });
+    const token = jwt.sign(user, secretKey, {
+      expiresIn: "1h",
+      algorithm: "HS256",
+    });
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
     // Do not include the password in the response
     // delete user.password;
     res.status(200).json({
@@ -42,7 +49,6 @@ export const userHandler = async (req, res) => {
       message: "Login successful.",
       user,
       secretKey,
-      token,
     });
     console.log(result);
   } catch (error) {
