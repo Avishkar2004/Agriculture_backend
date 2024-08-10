@@ -25,7 +25,6 @@ export const resetPasswordHandler = async (req, res) => {
     //generate a random secret key
     const secretKey = crypto.randomBytes(32).toString("hex");
     // console.log("Secret Key:", secretKey);
-
     // Update the user's password in the database
     await db
       .promise()

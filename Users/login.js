@@ -1,5 +1,6 @@
 import { db } from "../db.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 export const loginHandler = async (req, res) => {
   const { username, password } = req.body;
@@ -8,15 +9,23 @@ export const loginHandler = async (req, res) => {
     const [existingUser] = await db
       .promise()
       .execute("SELECT * FROM users WHERE username = ?", [username]);
-    if (existingUser.length === 0 || existingUser[0].password !== password) {
-      return res
-        .status(401)
-        .json({ error: "Both username and password are wrong." });
+
+    // Assuming you're storing hashed passwords
+    const storedHashedPassword = existingUser[0]?.password;
+
+    // Validate password using bcrypt
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      storedHashedPassword
+    );
+
+    if (!existingUser.length || !isPasswordValid) {
+      return res.status(401).json({ error: "Invalid username or password." });
     }
 
-    // Generate a random secret key
-    const secretKey = process.env.SECRET_KEY; // Ensure you have this in your .env file
-    const user = { id: existingUser[0].id, username, password };
+    // Generate a JWT token with non-sensitive information
+    const secretKey = process.env.SECRET_KEY;
+    const user = { id: existingUser[0].id, username: existingUser[0].username };
     const token = jwt.sign(user, secretKey, {
       expiresIn: "1h",
       algorithm: "HS256",
