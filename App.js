@@ -48,7 +48,7 @@ app.get("/search", async (req, res) => {
     const queries = [
       db
         .promise()
-        .execute("SELECT * FROM products WHERE name LIKE ?", [`%${q}%`]),
+        .execute("SELECT * FROM fungicides WHERE name LIKE ?", [`%${q}%`]),
       db
         .promise()
         .execute("SELECT * FROM plantgrowthregulator WHERE name LIKE ?", [
@@ -66,7 +66,7 @@ app.get("/search", async (req, res) => {
     ];
 
     const [
-      products,
+      fungicides,
       plantGrowthRegulators,
       organicProducts,
       microNutrients,
@@ -74,7 +74,7 @@ app.get("/search", async (req, res) => {
     ] = await Promise.all(queries);
 
     const results = [
-      ...products[0],
+      ...fungicides[0],
       ...plantGrowthRegulators[0],
       ...organicProducts[0],
       ...microNutrients[0],

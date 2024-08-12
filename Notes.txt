@@ -13,9 +13,3 @@ CREATE TABLE MicroNutrients (
     small_50 VARCHAR(50),
     big_100 VARCHAR(50)
 );
-
-
-
-
-======
-User Shoudn't be able to add product if it not authenticated
