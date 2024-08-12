@@ -97,7 +97,7 @@ app.get("/search", async (req, res) => {
 
 // for fetching product data (Fungicides )
 app.get("/products", (req, res) => {
-  db.query("SELECT * FROM products", (err, result) => {
+  db.query("SELECT * FROM fungicides", (err, result) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: "Internal server error" });
