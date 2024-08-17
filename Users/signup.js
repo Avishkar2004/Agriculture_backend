@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { db } from "../db.js";
+import { db } from "../config/db.js";
 import bcrypt from "bcrypt";
 
 export const userHandler = async (req, res) => {

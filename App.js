@@ -7,7 +7,7 @@ const app = express();
 
 import { resetPasswordHandler } from "./PasswordManager/resetPassword.js";
 import { userHandler } from "./Users/signup.js";
-import { db } from "./db.js";
+import { db } from "./config/db.js";
 import { authenticateToken } from "./middleware/User.js";
 import { loginHandler } from "./Users/login.js";
 import { logout } from "./Users/logout.js";
