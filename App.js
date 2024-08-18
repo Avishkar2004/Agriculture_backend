@@ -4,8 +4,6 @@ import "dotenv/config";
 import cookieParser from "cookie-parser"; // Add this to parse cookies
 import "dotenv/config";
 const app = express();
-
-import { db } from "./config/db.js";
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
 import {
