@@ -9,26 +9,28 @@ export const loginHandler = async (req, res) => {
   const { username, password } = req.body;
   try {
     // Check if the username exists in the database
-    const [existingUser] = await db
+    const [results] = await db
       .promise()
       .execute("SELECT * FROM users WHERE username = ?", [username]);
+    const existingUser = results[0];
 
-    // Assuming you're storing hashed passwords
-    const storedHashedPassword = existingUser[0]?.password;
+    if (!existingUser) {
+      return res.status(401).json({ error: "Invalid username or password." });
+    }
 
     // Validate password using bcrypt
     const isPasswordValid = await bcrypt.compare(
       password,
-      storedHashedPassword
+      existingUser.password
     );
 
-    if (!existingUser.length || !isPasswordValid) {
+    if (!isPasswordValid) {
       return res.status(401).json({ error: "Invalid username or password." });
     }
 
-    // Generate a JWT token with non-sensitive information
+    // Generate a JWT token
     const secretKey = process.env.SECRET_KEY;
-    const user = { id: existingUser[0].id, username: existingUser[0].username };
+    const user = { id: existingUser.id, username: existingUser.username };
     const token = jwt.sign(user, secretKey, {
       expiresIn: "1h",
       algorithm: "HS256",
@@ -37,7 +39,7 @@ export const loginHandler = async (req, res) => {
     res.cookie("authToken", token, {
       httpOnly: true,
       sameSite: "strict",
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // Ensure secure flag is set for production
     });
 
     res.status(200).json({
@@ -110,8 +112,7 @@ export const logout = (req, res) => {
       httpOnly: true,
       sameSite: "strict",
       path: "/", // Ensure the path matches
-      // domain: "your-domain.com", // Uncomment and specify if a domain was used
-      // secure: true, // Uncomment if the cookie was set with secure option
+      secure: true,
     });
 
     // Send response

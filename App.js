@@ -3,7 +3,6 @@ import express from "express";
 import "dotenv/config";
 import cookieParser from "cookie-parser"; // Add this to parse cookies
 import "dotenv/config";
-const app = express();
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
 import {
@@ -25,6 +24,7 @@ import {
 } from "./controllers/cartController.js";
 import { searchProducts } from "./controllers/searchController.js";
 
+const app = express();
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -69,14 +69,12 @@ app.get("/products/next/:id", getNextProduct);
 // This is for Insecticide
 app.get("/Insecticide", Insecticide);
 
-app.get("/cart", getCartItems);
+app.get("/cart",authenticateToken, getCartItems);
 
 // For inserting data (Protected route)
 app.post("/cart", authenticateToken, addToCart);
 
-app.delete("/cart/:id", deleteFromCart);
-
-
+app.delete("/cart/:id",authenticateToken, deleteFromCart);
 
 app.get("/", (req, res) => {
   res.send("Hello world");

@@ -1,11 +1,12 @@
 import { db } from "../config/db.js";
 
 export const getCartItems = (req, res) => {
-  db.query("SELECT * FROM cart", (err, results) => {
+  const userId = req.user.id; // Extract user ID from JWT payload
+
+  db.query("SELECT * FROM cart WHERE user_id = ?", [userId], (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ error: "Internal server error in Cart" });
-      return;
+      return res.status(500).json({ error: "Internal server error in Cart" });
     }
 
     try {
@@ -17,7 +18,7 @@ export const getCartItems = (req, res) => {
         return { ...cart, image: baseCartPhoto };
       });
 
-      res.send(baseWithCart);
+      res.json(baseWithCart);
     } catch (error) {
       console.error("Error processing cart data:", error);
       res.status(500).json({ error: "Internal server error in Cart" });
@@ -28,22 +29,22 @@ export const getCartItems = (req, res) => {
 export const addToCart = (req, res) => {
   try {
     const newItem = req.body;
-    console.log("Received request to add to cart:", newItem);
+    const userId = req.user.id; // Extract user ID from JWT payload
 
-    // Convert base64 image to buffer
     const binaryImage = newItem.image
       ? Buffer.from(newItem.image, "base64")
       : null;
 
-    const insertOrUpdateQuery = `INSERT INTO cart (id, name, price, image, quantity, productType)
-          VALUES (?, ?, ?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-          name = VALUES(name),  
-          price = VALUES(price),
-          image = VALUES(image),
-          quantity = VALUES(quantity),
-          productType = VALUES(productType)
-          `;
+    const insertOrUpdateQuery = `
+      INSERT INTO cart (id, name, price, image, quantity, productType, user_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        price = VALUES(price),
+        image = VALUES(image),
+        quantity = VALUES(quantity),
+        productType = VALUES(productType)
+    `;
     db.query(
       insertOrUpdateQuery,
       [
@@ -53,6 +54,7 @@ export const addToCart = (req, res) => {
         binaryImage,
         newItem.quantity,
         newItem.productType,
+        userId, // Pass user_id to the query
       ],
       (err, results) => {
         if (err) {
@@ -72,15 +74,16 @@ export const addToCart = (req, res) => {
 
 export const deleteFromCart = (req, res) => {
   const itemId = req.params.id;
+  const userId = req.user.id; // Extract user ID from JWT payload
 
-  const deleteQuery = "DELETE FROM cart WHERE id = ?";
-  db.query(deleteQuery, [itemId], (err, results) => {
+  const deleteQuery = "DELETE FROM cart WHERE id = ? AND user_id = ?";
+  db.query(deleteQuery, [itemId, userId], (err, results) => {
     if (err) {
       console.error("Error deleting cart item:", err);
-      return res.status(500).json({ error: "internal server error" });
+      return res.status(500).json({ error: "Internal server error" });
     }
-    if (res.affectedRows === 0) {
-      return res.status(404).json({ error: "item not found in cart" });
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "Item not found in cart" });
     }
     res.json({ success: true, message: "Item removed from cart" });
   });
