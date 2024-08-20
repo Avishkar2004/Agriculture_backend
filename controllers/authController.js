@@ -111,6 +111,7 @@ export const logout = (req, res) => {
     res.clearCookie("authToken", {
       httpOnly: true,
       sameSite: "strict",
+      path: "/", // Ensure the path matches
       secure: true,
     });
 
