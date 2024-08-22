@@ -35,8 +35,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser()); // Use cookie parser middleware
 
-//this is for sending opt
-app.post("/forgotpassword", ForGetPassWord);
 
 // Endpoint for handling user signup/createAcc
 app.post("/users", userHandler);
@@ -47,6 +45,9 @@ app.post("/logout", logout);
 
 // this is for reset password
 app.post("/resetpassword", resetPasswordHandler);
+
+//this is for sending opt
+app.post("/forgotpassword", ForGetPassWord);
 
 //! For Search :-
 
