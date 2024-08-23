@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import "dotenv/config";
 
+//! For Login
 export const loginHandler = async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -15,7 +16,7 @@ export const loginHandler = async (req, res) => {
     const existingUser = results[0];
 
     if (!existingUser) {
-      return res.status(401).json({ error: "Invalid username or password." });
+      return res.status(401).json({ error: "Invalid username." });
     }
 
     // Validate password using bcrypt
@@ -23,9 +24,8 @@ export const loginHandler = async (req, res) => {
       password,
       existingUser.password
     );
-
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid username or password." });
+      return res.status(401).json({ error: "Invalid password." });
     }
 
     // Generate a JWT token
@@ -52,20 +52,34 @@ export const loginHandler = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
+//! For Create a acc(Sign Up)
 export const userHandler = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
+
   try {
-    const [existingUser] = await db
+    // Check if the username already exists
+    const [existingUsername] = await db
       .promise()
       .execute("SELECT * FROM users WHERE username = ?", [username]);
 
-    if (existingUser.length > 0) {
+    if (existingUsername.length > 0) {
       return res
         .status(400)
         .json({ message: "Username is already taken. Please choose another." });
     }
 
+    // Check if the email already exists
+    const [existingEmail] = await db
+      .promise()
+      .execute("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (existingEmail.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Email is already used. Please use another email." });
+    }
+
+    // Check if passwords match
     if (password !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match." });
     }
@@ -73,27 +87,31 @@ export const userHandler = async (req, res) => {
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Insert the new user into the database
     const [result] = await db
       .promise()
       .execute(
-        "INSERT INTO users (username, email, password, confirmPassword) VALUES (?, ?, ?, ?)",
-        [username, email, hashedPassword, hashedPassword]
+        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+        [username, email, hashedPassword]
       );
 
     const user = { id: result.insertId, username };
     const secretKey = process.env.SECRET_KEY;
 
+    // Generate JWT token
     const token = jwt.sign(user, secretKey, {
       expiresIn: "1h",
       algorithm: "HS256",
     });
 
+    // Set auth token in cookies
     res.cookie("authToken", token, {
       httpOnly: true,
       sameSite: "strict",
       secure: true,
     });
 
+    // Respond with success message
     res.status(200).json({
       success: true,
       message: "Account created successfully.",

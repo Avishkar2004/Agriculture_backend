@@ -35,7 +35,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser()); // Use cookie parser middleware
 
-
 // Endpoint for handling user signup/createAcc
 app.post("/users", userHandler);
 
@@ -70,12 +69,12 @@ app.get("/products/next/:id", getNextProduct);
 // This is for Insecticide
 app.get("/Insecticide", Insecticide);
 
-app.get("/cart",authenticateToken, getCartItems);
+app.get("/cart", authenticateToken, getCartItems);
 
 // For inserting data (Protected route)
 app.post("/cart", authenticateToken, addToCart);
 
-app.delete("/cart/:id",authenticateToken, deleteFromCart);
+app.delete("/cart/:id", authenticateToken, deleteFromCart);
 
 app.get("/", (req, res) => {
   res.send("Hello world");
