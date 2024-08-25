@@ -54,72 +54,54 @@ export const loginHandler = async (req, res) => {
 };
 //! For Create a acc(Sign Up)
 export const userHandler = async (req, res) => {
-  const { username, email, password, confirmPassword } = req.body;
+  const { username, email, password } = req.body;
 
   try {
-    // Check if the username already exists
-    const [existingUsername] = await db
+    const [existingUser] = await db
       .promise()
-      .execute("SELECT * FROM users WHERE username = ?", [username]);
+      .execute("SELECT * FROM users WHERE username = ? OR email = ?", [
+        username,
+        email,
+      ]);
 
-    if (existingUsername.length > 0) {
-      return res
-        .status(400)
-        .json({ message: "Username is already taken. Please choose another." });
+    if (existingUser.length > 0) {
+      const message =
+        existingUser[0].username === username
+          ? "Username is already taken. Please choose another."
+          : "Email is already used. Please use another email.";
+      return res.status(400).json({ message });
     }
 
-    // Check if the email already exists
-    const [existingEmail] = await db
-      .promise()
-      .execute("SELECT * FROM users WHERE email = ?", [email]);
-
-    if (existingEmail.length > 0) {
-      return res
-        .status(400)
-        .json({ message: "Email is already used. Please use another email." });
-    }
-
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match." });
-    }
-
-    // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert the new user into the database
     const [result] = await db
       .promise()
       .execute(
-        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-        [username, email, hashedPassword]
+        "INSERT INTO users (username, email, password, confirmPassword) VALUES (?, ?, ?, ?)",
+        [username, email, hashedPassword, hashedPassword]
       );
 
     const user = { id: result.insertId, username };
     const secretKey = process.env.SECRET_KEY;
 
-    // Generate JWT token
     const token = jwt.sign(user, secretKey, {
       expiresIn: "1h",
       algorithm: "HS256",
     });
 
-    // Set auth token in cookies
     res.cookie("authToken", token, {
       httpOnly: true,
-      sameSite: "strict",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     });
 
-    // Respond with success message
-    res.status(200).json({
-      success: true,
-      message: "Account created successfully.",
-      user,
-    });
+    res.status(201).json({ success: true, user, token });
   } catch (error) {
-    console.error("Error inserting user into database:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error during user registration:", error);
+    res
+      .status(500)
+      .json({
+        message: "An error occurred during registration. Please try again.",
+      });
   }
 };
 

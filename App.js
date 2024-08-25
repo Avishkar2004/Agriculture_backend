@@ -16,7 +16,13 @@ import { plantgrowthregulator } from "./models/plantgrowthregulator.js";
 import { micronutrient } from "./models/micronutrients.js";
 import { Insecticide } from "./models/Insecticide.js";
 import { Fungicides } from "./models/Fungicides.js";
-import { getNextProduct } from "./controllers/productController.js";
+import {
+  getNextProductfungicides,
+  getNextProductinsecticide,
+  getNextProductmicro_nutrients,
+  getNextProductorganicproduct,
+  getNextProductplantgrowthregulator,
+} from "./controllers/productController.js";
 import {
   addToCart,
   deleteFromCart,
@@ -64,7 +70,11 @@ app.get("/organicproduct", getOrganicProducts);
 // This is for Micro Nutrient
 app.get("/micro-nutrients", micronutrient);
 
-app.get("/products/next/:id", getNextProduct);
+app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
+app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
+app.get("/organicproduct/next/:id", getNextProductorganicproduct);
+app.get("/insecticide/next/:id", getNextProductinsecticide);
+app.get("/fungicides/next/:id", getNextProductfungicides);
 
 // This is for Insecticide
 app.get("/Insecticide", Insecticide);
