@@ -13,3 +13,18 @@ CREATE TABLE MicroNutrients (
     small_50 VARCHAR(50),
     big_100 VARCHAR(50)
 );
+
+
+
+Updated cart table schema for specific user:-
+
+CREATE TABLE cart (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  image BLOB,
+  quantity INT DEFAULT 1,
+  productType VARCHAR(255),
+  user_id INT NOT NULL,  -- Foreign key reference to user
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
