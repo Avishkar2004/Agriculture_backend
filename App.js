@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import "dotenv/config";
 import cookieParser from "cookie-parser"; // Add this to parse cookies
+import compression from "compression";
+
 import "dotenv/config";
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
@@ -31,6 +33,7 @@ import {
 import { searchProducts } from "./controllers/searchController.js";
 
 const app = express();
+app.use(compression());
 app.use(
   cors({
     origin: "http://localhost:3000",
