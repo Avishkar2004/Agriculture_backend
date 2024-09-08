@@ -8,6 +8,7 @@ import "dotenv/config";
 //! For Login
 export const loginHandler = async (req, res) => {
   const { username, password } = req.body;
+  const userAgent = req.headers["user-agent"];
   try {
     // Check if the username exists in the database
     const [results] = await db
@@ -36,11 +37,21 @@ export const loginHandler = async (req, res) => {
       algorithm: "HS256",
     });
 
+    await db
+      .promise()
+      .execute("UPDATE users SET last_login_browser = ? WHERE id = ?", [
+        userAgent,
+        existingUser.id,
+      ]);
+
     res.cookie("authToken", token, {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production", // Ensure secure flag is set for production
     });
+
+    // Log the user login with browser info
+    // console.log(`User ${username} logged in from browser: ${userAgent}`);
 
     res.status(200).json({
       success: true,
@@ -55,7 +66,7 @@ export const loginHandler = async (req, res) => {
 //! For Create a acc(Sign Up)
 export const userHandler = async (req, res) => {
   const { username, email, password } = req.body;
-
+  const userAgent = req.headers["user-agent"];
   try {
     const [existingUser] = await db
       .promise()
@@ -77,8 +88,8 @@ export const userHandler = async (req, res) => {
     const [result] = await db
       .promise()
       .execute(
-        "INSERT INTO users (username, email, password, confirmPassword) VALUES (?, ?, ?, ?)",
-        [username, email, hashedPassword, hashedPassword]
+        "INSERT INTO users (username, email, password, confirmPassword, last_login_browser) VALUES (?, ?, ?, ?, ?)",
+        [username, email, hashedPassword, hashedPassword, userAgent]
       );
 
     const user = { id: result.insertId, username };
@@ -93,15 +104,20 @@ export const userHandler = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
+    // Log the user signup with browser info
+    console.log(`User ${username} signed up from browser: ${userAgent}`);
 
-    res.status(201).json({ success: true, user, token });
+    res.status(201).json({
+      success: true,
+      user,
+      token,
+      browserInfo: userAgent,
+    });
   } catch (error) {
     console.error("Error during user registration:", error);
-    res
-      .status(500)
-      .json({
-        message: "An error occurred during registration. Please try again.",
-      });
+    res.status(500).json({
+      message: "An error occurred during registration. Please try again.",
+    });
   }
 };
 
@@ -213,7 +229,7 @@ export const resetPasswordHandler = async (req, res) => {
     await db
       .promise()
       .execute(
-        "UPDATE users SET password = ?, confirmPassword = ?, otp = NULL WHERE otp = ?",
+        "UPDATE users SET password = ?, confirmPassword = ?, otp = ?",
         [newPassword, newPassword, otp]
       );
 
