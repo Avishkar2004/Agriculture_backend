@@ -84,12 +84,14 @@ export const userHandler = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    // console.log("Hashed Password (Signup):", hashedPassword);
+    // console.log("Entered Password:", password);
 
     const [result] = await db
       .promise()
       .execute(
-        "INSERT INTO users (username, email, password, confirmPassword, last_login_browser) VALUES (?, ?, ?, ?, ?)",
-        [username, email, hashedPassword, hashedPassword, userAgent]
+        "INSERT INTO users (username, email, password, last_login_browser) VALUES (?, ?, ?,  ?)",
+        [username, email, hashedPassword, userAgent]
       );
 
     const user = { id: result.insertId, username };
@@ -105,7 +107,7 @@ export const userHandler = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
     });
     // Log the user signup with browser info
-    console.log(`User ${username} signed up from browser: ${userAgent}`);
+    // console.log(`User ${username} signed up from browser: ${userAgent}`);
 
     res.status(201).json({
       success: true,
@@ -228,10 +230,11 @@ export const resetPasswordHandler = async (req, res) => {
     // Update the user's password in the database
     await db
       .promise()
-      .execute(
-        "UPDATE users SET password = ?, confirmPassword = ?, otp = ?",
-        [newPassword, newPassword, otp]
-      );
+      .execute("UPDATE users SET password = ?, confirmPassword = ?, otp = ?", [
+        newPassword,
+        newPassword,
+        otp,
+      ]);
 
     // Sign a JWT token with the user's id and username
     const payload = { id: user[0].id, username: user[0].username };
