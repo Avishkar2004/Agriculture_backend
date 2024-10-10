@@ -207,6 +207,7 @@ export const ForGetPassWord = async (req, res) => {
 export const resetPasswordHandler = async (req, res) => {
   try {
     const { otp, newPassword } = req.body;
+
     if (!otp || !newPassword) {
       return res.status(400).send("OTP and new password are required");
     }
@@ -220,6 +221,7 @@ export const resetPasswordHandler = async (req, res) => {
     const [user] = await db
       .promise()
       .execute("SELECT * FROM users WHERE otp = ?", [otp]);
+
     if (user.length === 0) {
       return res.status(404).json({ error: "Invalid OTP." });
     }
@@ -227,13 +229,20 @@ export const resetPasswordHandler = async (req, res) => {
     //generate a random secret key
     const secretKey = crypto.randomBytes(32).toString("hex");
     // console.log("Secret Key:", secretKey);
+
+    const hashedPassword = crypto
+      .createHash("sha256")
+      .update(newPassword)
+      .digest("hex");
+
+    // console.log("Hashed Password :", hashedPassword);
     // Update the user's password in the database
     await db
       .promise()
-      .execute("UPDATE users SET password = ?, confirmPassword = ?, otp = ?", [
-        newPassword,
-        newPassword,
+      .execute("UPDATE users SET password = ?,  otp = ? WHERE id = ?", [
+        hashedPassword,
         otp,
+        user[0].id,
       ]);
 
     // Sign a JWT token with the user's id and username
