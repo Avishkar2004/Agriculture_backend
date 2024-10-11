@@ -3,9 +3,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
+import { sendEmailWhenSignUp, sendEmailWhenLogin } from "../utils/email.js";
 import "dotenv/config";
 
-//! For Login
+//! For Sign In
 export const loginHandler = async (req, res) => {
   const { username, password } = req.body;
   const userAgent = req.headers["user-agent"];
@@ -50,8 +51,12 @@ export const loginHandler = async (req, res) => {
       secure: process.env.NODE_ENV === "production", // Ensure secure flag is set for production
     });
 
-    // Log the user login with browser info
-    // console.log(`User ${username} logged in from browser: ${userAgent}`);
+    // Send email notification on successful login
+    await sendEmailWhenLogin(
+      existingUser.email,
+      existingUser.username,
+      "login"
+    );
 
     res.status(200).json({
       success: true,
@@ -63,8 +68,9 @@ export const loginHandler = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-//! For Create a acc(Sign Up)
-export const userHandler = async (req, res) => {
+
+//! For Create a acc / Sign Up
+export const signupHandler = async (req, res) => {
   const { username, email, password } = req.body;
   const userAgent = req.headers["user-agent"];
   try {
@@ -106,6 +112,9 @@ export const userHandler = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
+
+    await sendEmailWhenSignUp(email, username, "signup");
+
     // Log the user signup with browser info
     // console.log(`User ${username} signed up from browser: ${userAgent}`);
 

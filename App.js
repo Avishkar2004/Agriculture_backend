@@ -4,13 +4,13 @@ import "dotenv/config";
 import cookieParser from "cookie-parser"; // Add this to parse cookies
 import compression from "compression";
 
-import "dotenv/config";
+import { db } from "./config/db.js";
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
 import {
   loginHandler,
   logout,
-  userHandler,
+  signupHandler,
   ForGetPassWord,
   resetPasswordHandler,
 } from "./controllers/authController.js";
@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser()); // Use cookie parser middleware
 
 // Endpoint for handling user signup/createAcc
-app.post("/users", userHandler);
+app.post("/users", signupHandler);
 
 app.post("/login", loginHandler);
 
@@ -93,6 +93,13 @@ app.get("/", (req, res) => {
   res.send("Hello world");
 });
 
-app.listen(process.env.PORT || 8000, () =>
-  console.log(`Server running on port ${process.env.PORT}`)
-);
+db.connect((err) => {
+  if (err) {
+    console.error("Error connecting to MySQL database: ", err);
+    return; //Exit if connection fails
+  }
+
+  app.listen(process.env.PORT || 8000, () =>
+    console.log(`Server running on port ${process.env.PORT}`)
+  );
+});
