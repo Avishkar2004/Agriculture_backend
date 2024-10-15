@@ -1,10 +1,13 @@
 import mysql2 from "mysql2";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables from .env file
 
 export const db = mysql2.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "agriculture",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -17,4 +20,3 @@ db.connect((err) => {
   }
   console.log("Connected to MySQL database");
 });
-

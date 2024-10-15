@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"; // Add this to parse cookies
 import compression from "compression";
 
 import { db } from "./config/db.js";
+
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
 import {
@@ -31,6 +32,7 @@ import {
   getCartItems,
 } from "./controllers/cartController.js";
 import { searchProducts } from "./controllers/searchController.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 const app = express();
 app.use(compression());
@@ -72,6 +74,9 @@ app.get("/organicproduct", getOrganicProducts);
 
 // This is for Micro Nutrient
 app.get("/micro-nutrients", micronutrient);
+
+//! For order
+app.use("/api", orderRoutes);
 
 app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
 app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
