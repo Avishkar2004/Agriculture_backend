@@ -4,6 +4,8 @@ export async function createOrder(orderData) {
   const query = `
     INSERT INTO orders (
       product_name,
+      product_id,
+      user_id,
       quantity,
       customer_name,
       email,
@@ -18,11 +20,13 @@ export async function createOrder(orderData) {
       upi_id,
       bank_name,
       order_status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+    ) VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
   `;
 
   const values = [
     orderData.productName,
+    orderData.product_id,
+    orderData.user_id,
     orderData.quantity,
     orderData.customerName,
     orderData.email,
