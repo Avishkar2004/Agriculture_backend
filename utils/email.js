@@ -12,7 +12,7 @@ export const sendEmailWhenSignUp = async (recipient, username) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: recipient,
-    subject: `Welcome to Room Finder ${username}`,
+    subject: `Welcome to Agri ${username}`,
     html: `  
     <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; max-width: 600px; margin: auto;">
         <div style="text-align: center; padding: 10px 0; background-color: #f9f9f9; border-radius: 10px;">
@@ -22,7 +22,7 @@ export const sendEmailWhenSignUp = async (recipient, username) => {
           <a href="http://localhost:3000" style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; margin-top: 20px;">Go to Your Dashboard</a>
           <p style="font-size: 14px; color: #999; margin-top: 20px;">If you did not create this account, please contact our support team immediately.</p>
           <p style="font-size: 14px; margin-top: 10px;">Best Regards,</p>
-          <p style="font-size: 14px; color: #4CAF50; font-weight: bold;">The Room Finder Team</p>
+          <p style="font-size: 14px; color: #4CAF50; font-weight: bold;">The Agri Team</p>
         </div>
       </div>
       `,
@@ -41,7 +41,7 @@ export const sendEmailWhenLogin = async (recipient, username) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: recipient,
-    subject: `Welcome to Room Finder ${username}`,
+    subject: `Welcome to Agri ${username}`,
     html: `
         <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; max-width: 600px; margin: auto;">
         <div style="text-align: center; padding: 10px 0; background-color: #f9f9f9; border-radius: 10px;">
@@ -51,7 +51,7 @@ export const sendEmailWhenLogin = async (recipient, username) => {
           <a href="http://localhost:3000" style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; margin-top: 20px;">Go to Your Dashboard</a>
           <p style="font-size: 14px; color: #999; margin-top: 20px;">If you did not create this account, please contact our support team immediately.</p>
           <p style="font-size: 14px; margin-top: 10px;">Best Regards,</p>
-          <p style="font-size: 14px; color: #4CAF50; font-weight: bold;">The Room Finder Team</p>
+          <p style="font-size: 14px; color: #4CAF50; font-weight: bold;">The Agri Team</p>
         </div>
       </div>
         `,

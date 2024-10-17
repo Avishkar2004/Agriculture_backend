@@ -110,6 +110,7 @@ export const signupHandler = async (req, res) => {
 
     res.cookie("authToken", token, {
       httpOnly: true,
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
 
@@ -168,7 +169,7 @@ const transporter = nodemailer.createTransport({
 export const ForGetPassWord = async (req, res) => {
   try {
     const { email } = req.body;
-
+    console.log("User Email For Reset Password :", email);
     // Server-side email format validation
     if (!email || !email.includes("@gmail.com")) {
       return res.status(400).send("Please provide a valid Gmail address.");
@@ -192,7 +193,7 @@ export const ForGetPassWord = async (req, res) => {
 
     // Compose email message and send it
     const mailOptions = {
-      from: "kakdevicky476@gmail.com",
+      from: "process.env.EMAIL_USER",
       to: email,
       subject: "Forgot Password OTP",
       text: `Your OTP is: ${otp}`,
@@ -216,7 +217,7 @@ export const ForGetPassWord = async (req, res) => {
 export const resetPasswordHandler = async (req, res) => {
   try {
     const { otp, newPassword } = req.body;
-
+    console.log(`OTP is ${otp}, and new Password is ${newPassword}`);
     if (!otp || !newPassword) {
       return res.status(400).send("OTP and new password are required");
     }
@@ -239,10 +240,7 @@ export const resetPasswordHandler = async (req, res) => {
     const secretKey = crypto.randomBytes(32).toString("hex");
     // console.log("Secret Key:", secretKey);
 
-    const hashedPassword = crypto
-      .createHash("sha256")
-      .update(newPassword)
-      .digest("hex");
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // console.log("Hashed Password :", hashedPassword);
     // Update the user's password in the database
@@ -256,7 +254,9 @@ export const resetPasswordHandler = async (req, res) => {
 
     // Sign a JWT token with the user's id and username
     const payload = { id: user[0].id, username: user[0].username };
-    const token = jwt.sign(payload, secretKey);
+    const token = jwt.sign(payload, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
 
     res.status(200).json({
       success: true,
