@@ -3,7 +3,11 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
-import { sendEmailWhenSignUp, sendEmailWhenLogin } from "../utils/email.js";
+import {
+  sendEmailWhenSignUp,
+  sendEmailWhenLogin,
+  sendEmailWhenPasswordReset,
+} from "../utils/email.js";
 import "dotenv/config";
 
 //! For Sign In
@@ -257,6 +261,10 @@ export const resetPasswordHandler = async (req, res) => {
     const token = jwt.sign(payload, process.env.SECRET_KEY, {
       expiresIn: "1h",
     });
+
+    const recipient = user[0].email;
+    const username = user[0].username;
+    await sendEmailWhenPasswordReset(recipient, username);
 
     res.status(200).json({
       success: true,
