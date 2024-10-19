@@ -78,9 +78,9 @@ app.get("/micro-nutrients", micronutrient);
 //! For order
 app.use("/api", orderRoutes);
 
-app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
-app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
+app.get('/plantgrowthregulator/next/:id', getNextProductplantgrowthregulator);
 app.get("/organicproduct/next/:id", getNextProductorganicproduct);
+app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
 app.get("/insecticide/next/:id", getNextProductinsecticide);
 app.get("/fungicides/next/:id", getNextProductfungicides);
 
