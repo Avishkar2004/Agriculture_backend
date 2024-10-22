@@ -1,11 +1,21 @@
-table Created :-
-
-CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    product_type ENUM('fungicide', 'insecticide', 'micro_nutrients', 'organic_product', 'plant_growth_regulator') NOT NULL
+CREATE TABLE MicroNutrients (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image LONGBLOB,
+    price_small DECIMAL(10, 2),
+    salePrice DECIMAL(10, 2),
+    review_50 INT,
+    review_100 INT,
+    save_50 DECIMAL(10, 2),
+    save_100 DECIMAL(10, 2),
+    stockStatus ENUM('In Stock', 'Out of Stock'),
+    small_50 VARCHAR(50),
+    big_100 VARCHAR(50)
 );
 
+
+For Orders
 
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,4 +39,16 @@ CREATE TABLE orders (
 ) ENGINE=InnoDB;
 
 
-For Orders
+For Rating :-
+
+-- Table for storing ratings
+CREATE TABLE ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    product_id INT,
+    rating TINYINT CHECK (rating >= 1 AND rating <= 5), -- 1 to 5 star rating
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, product_id), -- A user can rate a product only once
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
