@@ -1,9 +1,10 @@
+import os from "os";
+import cluster from "node:cluster";
 import cors from "cors";
 import express from "express";
 import "dotenv/config";
 import cookieParser from "cookie-parser"; // Add this to parse cookies
 import compression from "compression";
-
 import { db } from "./config/db.js";
 
 import { authenticateToken } from "./middleware/User.js";
@@ -34,77 +35,93 @@ import {
 import { searchProducts } from "./controllers/searchController.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
-const app = express();
-app.use(compression());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser()); // Use cookie parser middleware
+const numCPUs = os.cpus().length; //get the number of available CPU Cores
+// console.log(numCPUs)
 
-// Endpoint for handling user signup/createAcc
-app.post("/users", signupHandler);
-
-app.post("/login", loginHandler);
-
-app.post("/logout", logout);
-
-// this is for reset password
-app.post("/resetpassword", resetPasswordHandler);
-
-//this is for sending opt
-app.post("/forgotpassword", ForGetPassWord);
-
-//! For Search :-
-
-app.get("/search", searchProducts);
-
-// for fetching product data (Fungicides )
-app.get("/products", Fungicides);
-
-// This is for plant Growth Regulator
-app.get("/plantgrowthregulator", plantgrowthregulator);
-
-// This is for Organic Product
-app.get("/organicproduct", getOrganicProducts);
-
-// This is for Micro Nutrient
-app.get("/micro-nutrients", micronutrient);
-
-//! For order
-app.use("/api", orderRoutes);
-
-app.get('/plantgrowthregulator/next/:id', getNextProductplantgrowthregulator);
-app.get("/organicproduct/next/:id", getNextProductorganicproduct);
-app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
-app.get("/insecticide/next/:id", getNextProductinsecticide);
-app.get("/fungicides/next/:id", getNextProductfungicides);
-
-// This is for Insecticide
-app.get("/Insecticide", Insecticide);
-
-app.get("/cart", authenticateToken, getCartItems);
-
-// For inserting data (Protected route)
-app.post("/cart", authenticateToken, addToCart);
-
-app.delete("/cart/:id", authenticateToken, deleteFromCart);
-
-app.get("/", (req, res) => {
-  res.send("Hello world");
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error("Error connecting to MySQL database: ", err);
-    return; //Exit if connection fails
+if (cluster.isPrimary) {
+  console.log(`Primary process ${process.pid} is running`);
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
   }
 
-  app.listen(process.env.PORT || 8000, () =>
-    console.log(`Server running on port ${process.env.PORT}`)
+  cluster.on("exit", (Worker, code, signal) => {
+    console.log(`Worker ${Worker.process.pid} died. Starting new one...`);
+    cluster.fork();
+  });
+} else {
+  //Worker Can Share any TCp connection, like the one for Express
+  const app = express();
+  app.use(compression());
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
   );
-});
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(cookieParser()); // Use cookie parser middleware
+
+  // Endpoint for handling user signup/createAcc
+  app.post("/users", signupHandler);
+
+  app.post("/login", loginHandler);
+
+  app.post("/logout", logout);
+
+  // this is for reset password
+  app.post("/resetpassword", resetPasswordHandler);
+
+  //this is for sending opt
+  app.post("/forgotpassword", ForGetPassWord);
+
+  //! For Search :-
+
+  app.get("/search", searchProducts);
+
+  // for fetching product data (Fungicides )
+  app.get("/products", Fungicides);
+
+  // This is for plant Growth Regulator
+  app.get("/plantgrowthregulator", plantgrowthregulator);
+
+  // This is for Organic Product
+  app.get("/organicproduct", getOrganicProducts);
+
+  // This is for Micro Nutrient
+  app.get("/micro-nutrients", micronutrient);
+
+  //! For order
+  app.use("/api", orderRoutes);
+
+  app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
+  app.get("/organicproduct/next/:id", getNextProductorganicproduct);
+  app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
+  app.get("/insecticide/next/:id", getNextProductinsecticide);
+  app.get("/fungicides/next/:id", getNextProductfungicides);
+
+  // This is for Insecticide
+  app.get("/Insecticide", Insecticide);
+
+  app.get("/cart", authenticateToken, getCartItems);
+
+  // For inserting data (Protected route)
+  app.post("/cart", authenticateToken, addToCart);
+
+  app.delete("/cart/:id", authenticateToken, deleteFromCart);
+
+  app.get("/", (req, res) => {
+    res.send("Hello world");
+  });
+
+  db.connect((err) => {
+    if (err) {
+      console.error("Error connecting to Database: ", err);
+      return; //Exit if connection fails
+    }
+
+    app.listen(process.env.PORT || 8000, () =>
+      console.log(`Server running on port ${process.env.PORT}`)
+    );
+  });
+}

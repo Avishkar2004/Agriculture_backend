@@ -10,69 +10,6 @@ import {
 } from "../utils/email.js";
 import "dotenv/config";
 
-//! For Sign In
-export const loginHandler = async (req, res) => {
-  const { username, password } = req.body;
-  const userAgent = req.headers["user-agent"];
-  try {
-    // Check if the username exists in the database
-    const [results] = await db
-      .promise()
-      .execute("SELECT * FROM users WHERE username = ?", [username]);
-    const existingUser = results[0];
-
-    if (!existingUser) {
-      return res.status(401).json({ error: "Invalid username." });
-    }
-
-    // Validate password using bcrypt
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      existingUser.password
-    );
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid password." });
-    }
-
-    // Generate a JWT token
-    const secretKey = process.env.SECRET_KEY;
-    const user = { id: existingUser.id, username: existingUser.username };
-    const token = jwt.sign(user, secretKey, {
-      expiresIn: "1h",
-      algorithm: "HS256",
-    });
-
-    await db
-      .promise()
-      .execute("UPDATE users SET last_login_browser = ? WHERE id = ?", [
-        userAgent,
-        existingUser.id,
-      ]);
-
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production", // Ensure secure flag is set for production
-    });
-
-    // Send email notification on successful login
-    await sendEmailWhenLogin(
-      existingUser.email,
-      existingUser.username,
-      "login"
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful.",
-      user,
-    });
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
 //! For Create a acc / Sign Up
 export const signupHandler = async (req, res) => {
   const { username, email, password } = req.body;
@@ -136,6 +73,71 @@ export const signupHandler = async (req, res) => {
     });
   }
 };
+
+//! For Sign In
+export const loginHandler = async (req, res) => {
+  const { username, password } = req.body;
+  const userAgent = req.headers["user-agent"];
+  try {
+    // Check if the username exists in the database
+    const [results] = await db
+      .promise()
+      .execute("SELECT * FROM users WHERE username = ?", [username]);
+    const existingUser = results[0];
+
+    if (!existingUser) {
+      return res.status(401).json({ error: "Invalid username." });
+    }
+
+    // Validate password using bcrypt
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid password." });
+    }
+
+    // Generate a JWT token
+    const secretKey = process.env.SECRET_KEY;
+    const user = { id: existingUser.id, username: existingUser.username };
+    const token = jwt.sign(user, secretKey, {
+      expiresIn: "1h",
+      algorithm: "HS256",
+    });
+
+    await db
+      .promise()
+      .execute("UPDATE users SET last_login_browser = ? WHERE id = ?", [
+        userAgent,
+        existingUser.id,
+      ]);
+
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production", // Ensure secure flag is set for production
+    });
+
+    // Send email notification on successful login
+    await sendEmailWhenLogin(
+      existingUser.email,
+      existingUser.username,
+      "login"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      user,
+    });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
 
 export const logout = (req, res) => {
   try {
