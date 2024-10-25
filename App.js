@@ -34,6 +34,7 @@ import {
 } from "./controllers/cartController.js";
 import { searchProducts } from "./controllers/searchController.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import userRoutes from "./routes/userRoutes.js"; // Ensure correct import
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -68,6 +69,9 @@ if (cluster.isPrimary) {
   app.post("/login", loginHandler);
 
   app.post("/logout", logout);
+
+  //! Delete User by Id
+  app.use("/api", userRoutes); // This line is correct
 
   // this is for reset password
   app.post("/resetpassword", resetPasswordHandler);

@@ -280,3 +280,25 @@ export const resetPasswordHandler = async (req, res) => {
     res.status(500).json({ error: "Internal server error." });
   }
 };
+
+//! Delete User By Id
+export const deleteUserHandler = async (req, res) => {
+  const userId = req.params.id; // Assuming you're passing the user ID as a URL parameter
+
+  try {
+    // Check if the user exists
+    const [user] = await db.promise().execute("SELECT * FROM users WHERE id = ?", [userId]);
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Delete the user from the database
+    await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
+
+    res.status(200).json({ success: true, message: "User deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "An error occurred while deleting the user." });
+  }
+};
