@@ -82,9 +82,6 @@ if (cluster.isPrimary) {
   //! For Search :-
   app.get("/search", searchProducts);
 
-  // for fetching product data (Plant Growth Regulatorproducts )
-  app.get("/products", plantgrowthregulator);
-
   // This is for plant Growth Regulator
   app.get("/plantgrowthregulator", plantgrowthregulator);
 
@@ -94,6 +91,12 @@ if (cluster.isPrimary) {
   // This is for Micro Nutrient
   app.get("/micro-nutrients", micronutrient);
 
+  // This is for Insecticide
+  app.get("/Insecticide", Insecticide);
+
+  // for fetching product data (Fungicides)
+  app.get("/products", Fungicides);
+
   //! For order
   app.use("/api", orderRoutes);
 
@@ -102,9 +105,6 @@ if (cluster.isPrimary) {
   app.get("/micro_nutrients/next/:id", getNextProductmicro_nutrients);
   app.get("/insecticide/next/:id", getNextProductinsecticide);
   app.get("/fungicides/next/:id", getNextProductfungicides);
-
-  // This is for Insecticide
-  app.get("/Insecticide", Insecticide);
 
   app.get("/cart", authenticateToken, getCartItems);
 
