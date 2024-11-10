@@ -1,4 +1,4 @@
-import { createOrder } from "../models/orderModel.js";
+import { getOrdersByUserId } from "../models/orderModel.js";
 import { db } from "../config/db.js";
 
 export async function placeOrder(req, res) {
@@ -20,37 +20,10 @@ export async function placeOrder(req, res) {
   }
 }
 
-
 export const getOrders = async (req, res) => {
-  console.log(req.user); // Log req.user to check if it's properly populated
-  const userId = req.user.id; // assuming you have user data from JWT or session
   try {
-    const [orders] = await db
-      .promise()
-      .execute(
-        `SELECT 
-           o.id, 
-           o.product_id, 
-           o.quantity, 
-           o.customer_name, 
-           o.email, 
-           o.phone_number, 
-           o.address, 
-           o.city, 
-           o.state, 
-           o.zip_code, 
-           o.country, 
-           o.payment_method, 
-           o.credit_card, 
-           o.upi_id, 
-           o.bank_name, 
-           o.order_status, 
-           o.created_at
-         FROM orders o
-         WHERE o.user_id = ?`,
-        [userId]
-      );
-
+    const userId = req.user.id; // assuming `req.user` is populated after authentication (e.g., from JWT or session)
+    const orders = await getOrdersByUserId(userId);
     res.status(200).json({ success: true, orders });
   } catch (error) {
     console.error("Error fetching orders:", error);
