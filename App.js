@@ -96,7 +96,7 @@ if (cluster.isPrimary) {
   app.get("/Insecticide", Insecticide);
 
   // for fetching product data (Fungicides)
-  app.get("/products", Fungicides);
+  app.get("/fungicides", Fungicides);
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);
