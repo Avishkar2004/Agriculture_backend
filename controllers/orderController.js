@@ -1,4 +1,4 @@
-import { getOrdersByUserId } from "../models/orderModel.js";
+import { createOrder, getOrdersByUserId } from "../models/orderModel.js";
 import { db } from "../config/db.js";
 
 export async function placeOrder(req, res) {
