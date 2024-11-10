@@ -53,15 +53,16 @@ if (cluster.isPrimary) {
   //Worker Can Share any TCp connection, like the one for Express
   const app = express();
   app.use(compression());
+  app.use(cookieParser()); // Use cookie parser middleware
   app.use(
     cors({
       origin: "http://localhost:3000",
       credentials: true,
     })
   );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  app.use(cookieParser()); // Use cookie parser middleware
 
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
@@ -97,8 +98,8 @@ if (cluster.isPrimary) {
   // for fetching product data (Fungicides)
   app.get("/products", Fungicides);
 
-  //! For order
-  app.use("/api", orderRoutes);
+  //! For order/ placedOrders info
+  app.use("/api", authenticateToken, orderRoutes);
 
   app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
   app.get("/organicproduct/next/:id", getNextProductorganicproduct);
@@ -106,6 +107,7 @@ if (cluster.isPrimary) {
   app.get("/insecticide/next/:id", getNextProductinsecticide);
   app.get("/fungicides/next/:id", getNextProductfungicides);
 
+  // For showing products info in cart
   app.get("/cart", authenticateToken, getCartItems);
 
   // For inserting data (Protected route)

@@ -31,9 +31,6 @@ export const signupHandler = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log("Hashed Password (Signup):", hashedPassword);
-    // console.log("Entered Password:", password);
-
     const [result] = await db
       .promise()
       .execute(
@@ -45,7 +42,7 @@ export const signupHandler = async (req, res) => {
     const secretKey = process.env.SECRET_KEY;
 
     const token = jwt.sign(user, secretKey, {
-      expiresIn: "1h",
+      expiresIn: "8h",
       algorithm: "HS256",
     });
 
@@ -57,19 +54,15 @@ export const signupHandler = async (req, res) => {
 
     await sendEmailWhenSignUp(email, username, "signup");
 
-    // Log the user signup with browser info
-    // console.log(`User ${username} signed up from browser: ${userAgent}`);
-
     res.status(201).json({
       success: true,
-      user,
-      token,
+      user: { ...user, token },
       browserInfo: userAgent,
     });
   } catch (error) {
     console.error("Error during user registration:", error);
     res.status(500).json({
-      message: "An error occurred during registration. Please try again.",
+      message: "INternal Server Error. Please try again.",
     });
   }
 };
@@ -102,7 +95,7 @@ export const loginHandler = async (req, res) => {
     const secretKey = process.env.SECRET_KEY;
     const user = { id: existingUser.id, username: existingUser.username };
     const token = jwt.sign(user, secretKey, {
-      expiresIn: "1h",
+      expiresIn: "8h",
       algorithm: "HS256",
     });
 
@@ -116,28 +109,27 @@ export const loginHandler = async (req, res) => {
     res.cookie("authToken", token, {
       httpOnly: true,
       sameSite: "strict",
-      secure: process.env.NODE_ENV === "production", // Ensure secure flag is set for production
+      secure: process.env.NODE_ENV === "production", // or use false for local dev
     });
 
-    // Send email notification on successful login
+    //! Send email notification on successful login
     await sendEmailWhenLogin(
       existingUser.email,
       existingUser.username,
       "login"
     );
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
+      user: { ...user, token },
+      browserInfo: userAgent,
       message: "Login successful.",
-      user,
     });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
 
 export const logout = (req, res) => {
   try {
@@ -146,7 +138,7 @@ export const logout = (req, res) => {
       httpOnly: true,
       sameSite: "strict",
       path: "/", // Ensure the path matches
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // or use false for local dev
     });
 
     // Send response
@@ -261,7 +253,7 @@ export const resetPasswordHandler = async (req, res) => {
     // Sign a JWT token with the user's id and username
     const payload = { id: user[0].id, username: user[0].username };
     const token = jwt.sign(payload, process.env.SECRET_KEY, {
-      expiresIn: "1h",
+      expiresIn: "8h",
     });
 
     const recipient = user[0].email;
@@ -287,7 +279,9 @@ export const deleteUserHandler = async (req, res) => {
 
   try {
     // Check if the user exists
-    const [user] = await db.promise().execute("SELECT * FROM users WHERE id = ?", [userId]);
+    const [user] = await db
+      .promise()
+      .execute("SELECT * FROM users WHERE id = ?", [userId]);
 
     if (user.length === 0) {
       return res.status(404).json({ message: "User not found." });
@@ -296,9 +290,13 @@ export const deleteUserHandler = async (req, res) => {
     // Delete the user from the database
     await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
 
-    res.status(200).json({ success: true, message: "User deleted successfully." });
+    res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully." });
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ message: "An error occurred while deleting the user." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while deleting the user." });
   }
 };
