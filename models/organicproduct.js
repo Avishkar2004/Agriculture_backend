@@ -19,8 +19,10 @@ export const getOrganicProducts = (req, res) => {
         return { ...organicproduct, image: base64Organic };
       });
 
-      // Send the response
-      res.status(200).json(baseWithBase64Organic);
+      // Send the response after 2 seconds
+      setTimeout(() => {
+        res.status(200).json(baseWithBase64Organic);
+      }, 2000);
     } catch (error) {
       console.error(error);
       res

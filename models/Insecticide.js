@@ -14,7 +14,9 @@ export const Insecticide = (req, res) => {
       ).toString("base64");
       return { ...Insecticide, image: base64ImageInsecticide };
     });
-
-    res.send(baseWithBase64Insecticide);
+      // Send the response after 2 seconds
+    setTimeout(() => {
+      res.send(baseWithBase64Insecticide);
+    }, 2000);
   });
 };

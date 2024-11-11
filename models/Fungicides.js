@@ -15,6 +15,9 @@ export const Fungicides = (req, res) => {
 
       return { ...product, image: base64Image };
     });
-    res.json(productWithBase64Images);
+    // Send the response after 2 seconds
+    setTimeout(() => {
+      res.json(productWithBase64Images);
+    }, 2000);
   });
 };

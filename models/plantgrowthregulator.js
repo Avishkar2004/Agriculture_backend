@@ -1,4 +1,6 @@
 import { db } from "../config/db.js";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 export const plantgrowthregulator = (req, res) => {
   db.query("SELECT * FROM plantgrowthregulator", (err, result) => {
@@ -18,6 +20,9 @@ export const plantgrowthregulator = (req, res) => {
         image: base64PGRImage,
       };
     });
-    res.json(productWithBase64PGRImages);
+      // Send the response after 2 seconds
+      setTimeout(() => {
+      res.json(productWithBase64PGRImages);
+    }, 2000);
   });
 };

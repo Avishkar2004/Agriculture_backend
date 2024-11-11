@@ -17,7 +17,9 @@ export const micronutrient = (req, res) => {
       ).toString("base64");
       return { ...micronutrient, image: base64Image };
     });
-
-    res.send(baseWithBase64micronutrients);
+    // Send the response after 2 seconds
+    setTimeout(() => {
+      res.send(baseWithBase64micronutrients);
+    }, 2000);
   });
 };
