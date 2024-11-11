@@ -19,8 +19,9 @@ export async function createOrder(orderData) {
       credit_card,
       upi_id,
       bank_name,
-      order_status
-    ) VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+      order_status,
+      price
+    ) VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
   `;
 
   const values = [
@@ -40,6 +41,7 @@ export async function createOrder(orderData) {
     orderData.creditCard || null,
     orderData.upiId || null,
     orderData.bankName || null,
+    orderData.price,
   ];
 
   try {
@@ -83,7 +85,8 @@ export const getOrdersByUserId = async (userId) => {
         o.upi_id, 
         o.bank_name, 
         o.order_status, 
-        o.created_at
+        o.created_at,
+        o.price
       FROM orders o
       WHERE o.user_id = ?`,
       [userId]
