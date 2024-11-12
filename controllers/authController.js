@@ -275,7 +275,7 @@ export const resetPasswordHandler = async (req, res) => {
 
 //! Delete User By Id
 export const deleteUserHandler = async (req, res) => {
-  const userId = req.params.id; // Assuming you're passing the user ID as a URL parameter
+  const userId = req.params.id;
 
   try {
     // Check if the user exists
@@ -287,16 +287,15 @@ export const deleteUserHandler = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
+    // Delete cart records associated with the user
+    await db.promise().execute("DELETE FROM cart WHERE user_id = ?", [userId]);
+
     // Delete the user from the database
     await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
 
-    res
-      .status(200)
-      .json({ success: true, message: "User deleted successfully." });
+    res.status(200).json({ success: true, message: "User deleted successfully." });
   } catch (error) {
     console.error("Error deleting user:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while deleting the user." });
+    res.status(500).json({ message: "An error occurred while deleting the user." });
   }
 };
