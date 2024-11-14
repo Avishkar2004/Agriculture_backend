@@ -35,6 +35,7 @@ import {
 import { searchProducts } from "./controllers/searchController.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import userRoutes from "./routes/userRoutes.js"; // Ensure correct import
+import deliveryAddressRoutes from "./routes/deliveryAddressRoutes.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -61,7 +62,7 @@ if (cluster.isPrimary) {
     })
   );
 
-  app.use(cors())
+  app.use(cors());
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
@@ -102,6 +103,8 @@ if (cluster.isPrimary) {
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);
+
+  app.use("/api/delivery-address", deliveryAddressRoutes);
 
   app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
   app.get("/organicproduct/next/:id", getNextProductorganicproduct);

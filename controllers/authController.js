@@ -51,12 +51,11 @@ export const signupHandler = async (req, res) => {
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
-
     await sendEmailWhenSignUp(email, username, "signup");
 
     res.status(201).json({
       success: true,
-      user: { ...user, token },
+      user: { ...user, token, email },
       browserInfo: userAgent,
     });
   } catch (error) {
@@ -121,7 +120,7 @@ export const loginHandler = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      user: { ...user, token },
+      user: { ...user, token, email: existingUser.email },
       browserInfo: userAgent,
       message: "Login successful.",
     });
@@ -293,9 +292,13 @@ export const deleteUserHandler = async (req, res) => {
     // Delete the user from the database
     await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
 
-    res.status(200).json({ success: true, message: "User deleted successfully." });
+    res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully." });
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ message: "An error occurred while deleting the user." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while deleting the user." });
   }
 };
