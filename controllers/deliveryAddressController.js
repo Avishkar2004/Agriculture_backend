@@ -1,4 +1,7 @@
-import { insertDeliveryAddress } from "../models/deliveryAddressModel.js"; // Use .js for ES module imports
+import {
+  insertDeliveryAddress,
+  getDeliveryAddressesByUserId,
+} from "../models/deliveryAddressModel.js"; // Use .js for ES module imports
 
 export const addDeliveryAddress = (req, res) => {
   const {
@@ -55,5 +58,17 @@ export const addDeliveryAddress = (req, res) => {
     return res
       .status(200)
       .json({ message: "Address saved successfully", data: result });
+  });
+};
+
+export const fetchDeliveryAddresses = (req, res) => {
+  const userId = req.user.id;
+  getDeliveryAddressesByUserId(userId, (err, addresses) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch delivery addresses" });
+    }
+    res.json(addresses);
   });
 };

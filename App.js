@@ -105,6 +105,7 @@ if (cluster.isPrimary) {
   app.use("/api", authenticateToken, orderRoutes);
 
   app.use("/api/delivery-address", deliveryAddressRoutes);
+  app.use("/api", deliveryAddressRoutes);
 
   app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
   app.get("/organicproduct/next/:id", getNextProductorganicproduct);
