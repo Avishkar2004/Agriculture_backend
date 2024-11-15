@@ -36,7 +36,7 @@ export const insertDeliveryAddress = (address, userId, callback) => {
 export const getDeliveryAddressesByUserId = (userId, callback) => {
   const query = `
 SELECT 
-      id, user_id, phone_number, alternate_phone_number, pincode, 
+      id, user_id, name, phone_number, alternate_phone_number, pincode, 
       locality, street_address, city, state, landmark, address_type
     FROM delivery_addresses
     WHERE user_id = ?
