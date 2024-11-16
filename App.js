@@ -37,6 +37,9 @@ import orderRoutes from "./routes/orderRoutes.js";
 import userRoutes from "./routes/userRoutes.js"; // Ensure correct import
 import deliveryAddressRoutes from "./routes/deliveryAddressRoutes.js";
 
+import http from "http";
+import { Server } from "socket.io";
+
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
 
@@ -53,6 +56,14 @@ if (cluster.isPrimary) {
 } else {
   //Worker Can Share any TCp connection, like the one for Express
   const app = express();
+  const server = http.createServer(app); //! Create an HTTP server using express
+  const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:3000", // Update to the React client URL
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
   app.use(compression());
   app.use(cookieParser()); // Use cookie parser middleware
   app.use(
@@ -66,6 +77,23 @@ if (cluster.isPrimary) {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
+
+  io.on("connection", (socket) => {
+    console.log(`User connected ${socket.id}`);
+
+    //Send a client message
+
+    socket.emit("welcome", { message: "Welcome to the server!" });
+
+    //! Handle client message
+    socket.on("client-message", (data) => {
+      console.log(`Message from client : ${data.text}`);
+      io.emit("server-message", { text: `Brodcast : ${data.text}` });
+    });
+    socket.on("disconnect", () => {
+      console.log(`User disconnected : ${socket.id}`);
+    });
+  });
 
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
@@ -131,7 +159,7 @@ if (cluster.isPrimary) {
       return; //Exit if connection fails
     }
 
-    app.listen(process.env.PORT || 8000, () =>
+    server.listen(process.env.PORT || 8000, () =>
       console.log(`Server running on port ${process.env.PORT}`)
     );
   });

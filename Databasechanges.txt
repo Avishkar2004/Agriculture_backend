@@ -12,6 +12,7 @@ CREATE TABLE MicroNutrients (
     stockStatus ENUM('In Stock', 'Out of Stock'),
     small_50 VARCHAR(50),
     big_100 VARCHAR(50)
+    brands VARCHAR(255)
 );
 
 
@@ -72,3 +73,6 @@ CREATE TABLE delivery_addresses (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)  -- Assuming there is a users table
 );
+
+
+ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
