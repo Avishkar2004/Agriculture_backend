@@ -48,7 +48,6 @@ if (cluster.isPrimary) {
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
-
   cluster.on("exit", (Worker, code, signal) => {
     console.log(`Worker ${Worker.process.pid} died. Starting new one...`);
     cluster.fork();
@@ -82,8 +81,7 @@ if (cluster.isPrimary) {
     console.log(`User connected ${socket.id}`);
 
     //Send a client message
-
-    socket.emit("welcome", { message: "Welcome to the server!" });
+    socket.emit("welcome", { message: "Kya hua bhai!" });
 
     //! Handle client message
     socket.on("client-message", (data) => {
