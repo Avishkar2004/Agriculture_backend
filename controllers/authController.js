@@ -306,12 +306,15 @@ export const deleteUserHandler = async (req, res) => {
 export const loginSuccessHandler = (req, res) => {
   const user = req.user;
   const secretKey = process.env.SECRET_KEY;
-  // console.log("first", user);
   // Generate JWT
-  const token = jwt.sign({ id: user.id, username: user.username }, secretKey, {
-    expiresIn: "8h",
-    algorithm: "HS256",
-  });
+  const token = jwt.sign(
+    { id: user.id, username: user.username, avatar: user.avatar },
+    secretKey,
+    {
+      expiresIn: "8h",
+      algorithm: "HS256",
+    }
+  );
 
   // Set cookie (Optional)
   res.cookie("authToken", token, {
