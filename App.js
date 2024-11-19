@@ -6,6 +6,7 @@ import "dotenv/config";
 import cookieParser from "cookie-parser"; // Add this to parse cookies
 import compression from "compression";
 import { db } from "./config/db.js";
+import session from "express-session";
 
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
@@ -16,6 +17,10 @@ import {
   ForGetPassWord,
   resetPasswordHandler,
 } from "./controllers/authController.js";
+import passport from "./config/passport.js";
+
+import authRouters from "./routes/auth.js";
+
 import { plantgrowthregulator } from "./models/plantgrowthregulator.js";
 import { micronutrient } from "./models/micronutrients.js";
 import { Insecticide } from "./models/Insecticide.js";
@@ -55,16 +60,17 @@ if (cluster.isPrimary) {
 } else {
   //Worker Can Share any TCp connection, like the one for Express
   const app = express();
+
   const server = http.createServer(app); //! Create an HTTP server using express
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000", // Update to the React client URL
-      methods: ["GET", "POST"],
+      origin: "http://localhost:3000", // Update to the React clie nt URL
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
+      allowedHeaders: true,
     },
   });
-  app.use(compression());
-  app.use(cookieParser()); // Use cookie parser middleware
+
   app.use(
     cors({
       origin: "http://localhost:3000",
@@ -72,8 +78,27 @@ if (cluster.isPrimary) {
     })
   );
 
-  app.use(cors());
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        secure: false, // Set to true if using HTTPS
+        httpOnly: true, // Helps prevent XSS attacks
+        sameSite: "lax", // Helps prevent CSRF attacks
+      },
+    })
+  );
 
+  // Initialize passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  app.use(compression());
+  app.use(cookieParser()); // Use cookie parser middleware
+
+  app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
@@ -86,7 +111,7 @@ if (cluster.isPrimary) {
     //! Handle client message
     socket.on("client-message", (data) => {
       console.log(`Message from client : ${data.text}`);
-      io.emit("server-message", { text: `Brodcast : ${data.text}` });
+      io.emit("server-message", { text: `Admin : ${data.text}` });
     });
     socket.on("disconnect", () => {
       console.log(`User disconnected : ${socket.id}`);
@@ -95,6 +120,9 @@ if (cluster.isPrimary) {
 
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
+
+  // Endpoint for handling google auth
+  app.use("/auth", authRouters);
 
   app.post("/login", loginHandler);
 

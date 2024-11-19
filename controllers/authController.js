@@ -302,3 +302,24 @@ export const deleteUserHandler = async (req, res) => {
       .json({ message: "An error occurred while deleting the user." });
   }
 };
+
+export const loginSuccessHandler = (req, res) => {
+  const user = req.user;
+  const secretKey = process.env.SECRET_KEY;
+  // console.log("first", user);
+  // Generate JWT
+  const token = jwt.sign({ id: user.id, username: user.username }, secretKey, {
+    expiresIn: "8h",
+    algorithm: "HS256",
+  });
+
+  // Set cookie (Optional)
+  res.cookie("authToken", token, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  // Redirect to React app with the token
+  res.redirect(`http://localhost:3000/auth/google/callback?token=${token}`);
+};
