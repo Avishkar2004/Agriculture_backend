@@ -18,6 +18,7 @@ import {
   resetPasswordHandler,
 } from "./controllers/authController.js";
 import passport from "./config/passport.js";
+import githubPassport from "./config/passportGithub.js";
 
 import authRouters from "./routes/auth.js";
 
@@ -91,9 +92,13 @@ if (cluster.isPrimary) {
     })
   );
 
-  // Initialize passport
+  // Initialize passport for google
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Initialize passport for github
+  app.use(githubPassport.initialize());
+  app.use(githubPassport.session());
 
   app.use(compression());
   app.use(cookieParser()); // Use cookie parser middleware
@@ -121,7 +126,7 @@ if (cluster.isPrimary) {
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
 
-  // Endpoint for handling google auth
+  // Endpoint for handling google auth and github authentication
   app.use("/auth", authRouters);
 
   app.post("/login", loginHandler);
