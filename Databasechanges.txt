@@ -36,23 +36,8 @@ CREATE TABLE orders (
     payment_method ENUM('creditCard', 'upi', 'netBanking', 'paypal') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
-) ENGINE=InnoDB;
-
-
-For Rating :-
-
--- Table for storing ratings
-CREATE TABLE ratings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    product_id INT,
-    rating TINYINT CHECK (rating >= 1 AND rating <= 5), -- 1 to 5 star rating
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, product_id), -- A user can rate a product only once
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
 
 
 

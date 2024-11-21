@@ -21,11 +21,11 @@ export async function createOrder(orderData) {
       bank_name,
       order_status,
       price
-    ) VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
   `;
 
   const values = [
-    orderData.productName,
+    orderData.product_name,
     orderData.product_id,
     orderData.user_id,
     orderData.quantity,
