@@ -41,7 +41,7 @@ export async function createOrder(orderData) {
     orderData.creditCard || null,
     orderData.upiId || null,
     orderData.bankName || null,
-    orderData.price,
+    orderData.totalPrice,
   ];
 
   try {
