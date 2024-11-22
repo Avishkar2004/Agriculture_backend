@@ -54,8 +54,7 @@ export async function createOrder(orderData) {
         resolve(results); // Resolve promise with query results
       });
     });
-
-    console.log("Order placed with ID:", result.insertId);
+    // console.log("Order placed with ID:", result.insertId);
     return result.insertId;
   } catch (error) {
     console.error("Error while placing the order:", error.message);

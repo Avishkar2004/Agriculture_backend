@@ -12,7 +12,6 @@ export async function placeOrder(req, res) {
     res.status(201).json({ message: "Order placed successfully!", orderId });
   } catch (error) {
     console.error("Order placement failed:", error.message);
-
     // Return an error response with proper status code
     res
       .status(500)
