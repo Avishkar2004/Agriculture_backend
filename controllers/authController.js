@@ -289,9 +289,15 @@ export const deleteUserHandler = async (req, res) => {
     // Delete cart records associated with the user
     await db.promise().execute("DELETE FROM cart WHERE user_id = ?", [userId]);
 
+    // Delete delivery_addresses records associated with the user
+
+    await db
+      .promise()
+      .execute("DELETE FROM delivery_addresses WHERE user_id = ?", [userId]);
+
     // Delete the user from the database
     await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
-
+    
     res
       .status(200)
       .json({ success: true, message: "User deleted successfully." });

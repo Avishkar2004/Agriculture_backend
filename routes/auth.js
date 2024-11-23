@@ -1,7 +1,6 @@
 import express from "express";
 import passport from "passport";
 import { loginSuccessHandler } from "../controllers/authController.js";
-import githubPassport from "../config/passportGithub.js";
 
 const router = express.Router();
 

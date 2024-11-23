@@ -10,10 +10,13 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "http://localhost:8080/auth/google/callback",
+      passReqToCallback: true, // Enable req access in the callback
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (req, accessToken, refreshToken, profile, done) => {
       try {
-        const userAgent = "Google OAuth";
+        // Capture User-Agent from the request headers
+        const userAgent = req.headers["user-agent"];
+        console.log("User Agent: " + userAgent);
 
         // Check if user exists
         const [existingUser] = await db
@@ -52,6 +55,7 @@ passport.use(
           id: result.insertId,
           username: profile.displayName,
           email: profile.emails[0].value,
+          last_login_browser: userAgent,
         };
 
         await sendEmailWhenSignUp(newUser.email, newUser.username, "signup");
