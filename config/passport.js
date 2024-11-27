@@ -16,7 +16,6 @@ passport.use(
       try {
         // Capture User-Agent from the request headers
         const userAgent = req.headers["user-agent"];
-        console.log("User Agent: " + userAgent);
 
         // Check if user exists
         const [existingUser] = await db
