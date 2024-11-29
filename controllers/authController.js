@@ -166,7 +166,7 @@ const transporter = nodemailer.createTransport({
 export const ForGetPassWord = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("User Email For Reset Password :", email);
+    // console.log("User Email For Reset Password :", email);
     // Server-side email format validation
     if (!email || !email.includes("@gmail.com")) {
       return res.status(400).send("Please provide a valid Gmail address.");
@@ -214,7 +214,7 @@ export const ForGetPassWord = async (req, res) => {
 export const resetPasswordHandler = async (req, res) => {
   try {
     const { otp, newPassword } = req.body;
-    console.log(`OTP is ${otp}, and new Password is ${newPassword}`);
+    // console.log(`OTP is ${otp}, and new Password is ${newPassword}`);
     if (!otp || !newPassword) {
       return res.status(400).send("OTP and new password are required");
     }
@@ -318,7 +318,12 @@ export const loginSuccessHandler = (req, res) => {
   const secretKey = process.env.SECRET_KEY;
   // Generate JWT
   const token = jwt.sign(
-    { id: user.id, username: user.username, avatar: user.avatar },
+    {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+    },
     secretKey,
     {
       expiresIn: "8h",

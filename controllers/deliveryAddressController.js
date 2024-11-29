@@ -18,7 +18,6 @@ export const addDeliveryAddress = (req, res) => {
   } = req.body;
   const userId = req.user.id;
 
-  console.log("Addresses", req.body);
 
   if (
     !name ||

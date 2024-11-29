@@ -19,7 +19,7 @@ passport.use(
 
       // Check if email is null and handle accordingly
       if (!email) {
-        console.log("Email not provided by GitHub.");
+        // console.log("Email not provided by GitHub.");
         email = `user_${profile.id}@example.com`;
       }
       try {
@@ -43,7 +43,7 @@ passport.use(
           return done(null, existingUser[0]);
         } else {
           // If no user found, log and proceed to create a new user
-          console.log("No user found, creating a new one...");
+          // console.log("No user found, creating a new one...");
 
           const [result] = await db
             .promise()
