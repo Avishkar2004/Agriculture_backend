@@ -45,6 +45,7 @@ import deliveryAddressRoutes from "./routes/deliveryAddressRoutes.js";
 
 import http from "http";
 import { Server } from "socket.io";
+import { getProductById } from "./controllers/getProductById.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -144,6 +145,10 @@ if (cluster.isPrimary) {
 
   //! For Search :-
   app.get("/search", searchProducts);
+
+  //!  Get Product by ID via search then render on next page
+  app.get("/api/product/:id", getProductById);
+
 
   // This is for plant Growth Regulator
   app.get("/plantgrowthregulator", plantgrowthregulator);
