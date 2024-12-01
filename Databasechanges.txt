@@ -1,4 +1,67 @@
-CREATE TABLE MicroNutrients (
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,            -- Unique identifier for each user
+    username VARCHAR(50) NOT NULL,               -- User's username
+    email VARCHAR(100) UNIQUE NOT NULL,          -- User's email (unique)
+    password VARCHAR(255) NOT NULL,              -- User's hashed password
+    avatar VARCHAR(255) DEFAULT NULL,            -- URL of the user's profile picture
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for when the user was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Timestamp for last update
+);
+
+
+
+CREATE TABLE insecticide (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image LONGBLOB,
+    price_small DECIMAL(10, 2),
+    salePrice DECIMAL(10, 2),
+    review_50 INT,
+    review_100 INT,
+    save_50 DECIMAL(10, 2),
+    save_100 DECIMAL(10, 2),
+    stockStatus ENUM('In Stock', 'Out of Stock'),
+    small_50 VARCHAR(50),
+    big_100 VARCHAR(50)
+    brands VARCHAR(255)
+);
+
+CREATE TABLE fungicides (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image LONGBLOB,
+    price_small DECIMAL(10, 2),
+    salePrice DECIMAL(10, 2),
+    review_50 INT,
+    review_100 INT,
+    save_50 DECIMAL(10, 2),
+    save_100 DECIMAL(10, 2),
+    stockStatus ENUM('In Stock', 'Out of Stock'),
+    small_50 VARCHAR(50),
+    big_100 VARCHAR(50)
+    brands VARCHAR(255)
+);
+
+CREATE TABLE micro_nutrients (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image LONGBLOB,
+    price_small DECIMAL(10, 2),
+    salePrice DECIMAL(10, 2),
+    review_50 INT,
+    review_100 INT,
+    save_50 DECIMAL(10, 2),
+    save_100 DECIMAL(10, 2),
+    stockStatus ENUM('In Stock', 'Out of Stock'),
+    small_50 VARCHAR(50),
+    big_100 VARCHAR(50)
+    brands VARCHAR(255)
+);
+
+CREATE TABLE organicproduct (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -16,29 +79,50 @@ CREATE TABLE MicroNutrients (
 );
 
 
-For Orders
-
-CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    phone_number VARCHAR(15) NOT NULL,
-    address TEXT NOT NULL,
-    city VARCHAR(50) NOT NULL,
-    state VARCHAR(50) NOT NULL,
-    zip_code VARCHAR(10) NOT NULL,
-    country VARCHAR(50) NOT NULL,
-    credit_card VARCHAR(20),
-    upi_id VARCHAR(100),
-    payment_method ENUM('creditCard', 'upi', 'netBanking', 'paypal') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+CREATE TABLE plantgrowthregulator (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image LONGBLOB,
+    price_small DECIMAL(10, 2),
+    salePrice DECIMAL(10, 2),
+    review_50 INT,
+    review_100 INT,
+    save_50 DECIMAL(10, 2),
+    save_100 DECIMAL(10, 2),
+    stockStatus ENUM('In Stock', 'Out of Stock'),
+    small_50 VARCHAR(50),
+    big_100 VARCHAR(50)
+    brands VARCHAR(255)
 );
 
 
+
+For Orders
+
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,                  -- Unique identifier for the order
+    user_id INT NOT NULL,                               -- Foreign key for the user placing the order
+    product_id INT NOT NULL,                            -- Foreign key for the ordered product
+    product_name VARCHAR(255) NOT NULL,                -- Name of the product
+    customer_name VARCHAR(255) NOT NULL,               -- Customer's full name
+    quantity INT NOT NULL,                              -- Quantity of the product ordered
+    email VARCHAR(100) NOT NULL,                        -- Customer's email
+    phone_number VARCHAR(15) NOT NULL,                 -- Customer's phone number
+    address TEXT NOT NULL,                              -- Customer's address
+    city VARCHAR(50) NOT NULL,                          -- City
+    state VARCHAR(50) NOT NULL,                         -- State
+    zip_code VARCHAR(10) NOT NULL,                      -- Zip code
+    country VARCHAR(50) NOT NULL,                       -- Country
+    payment_method ENUM('creditCard', 'upi', 'netBanking', 'paypal') NOT NULL, -- Payment method
+    credit_card VARCHAR(20),                            -- Credit card details (nullable)
+    upi_id VARCHAR(100),                                -- UPI ID (nullable)
+    bank_name VARCHAR(255),                             -- Bank name (nullable)
+    order_status ENUM('pending', 'completed', 'canceled') DEFAULT 'pending', -- Status of the order
+    price DECIMAL(10, 2) NOT NULL,                      -- Total price of the order
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- Timestamp for when the order was created
+    FOREIGN KEY (user_id) REFERENCES users(id)          -- Foreign key constraint for user_id
+);
 
 
 CREATE TABLE delivery_addresses (
@@ -60,5 +144,6 @@ CREATE TABLE delivery_addresses (
 );
 
 
-ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN github_id BOOLEAN DEFAULT VARCHAR(255);
+ALTER TABLE users 
+ADD COLUMN github_id VARCHAR(255) DEFAULT NULL,
+ADD COLUMN google_id VARCHAR(255) DEFAULT NULL;
