@@ -42,7 +42,7 @@ export const signupHandler = async (req, res) => {
     const secretKey = process.env.SECRET_KEY;
 
     const token = jwt.sign(user, secretKey, {
-      expiresIn: "8h",
+      expiresIn: process.env.JWT_EXPIRES_IN,
       algorithm: "HS256",
     });
 
@@ -94,7 +94,7 @@ export const loginHandler = async (req, res) => {
     const secretKey = process.env.SECRET_KEY;
     const user = { id: existingUser.id, username: existingUser.username };
     const token = jwt.sign(user, secretKey, {
-      expiresIn: "8h",
+      expiresIn: process.env.JWT_EXPIRES_IN,
       algorithm: "HS256",
     });
 
@@ -252,7 +252,7 @@ export const resetPasswordHandler = async (req, res) => {
     // Sign a JWT token with the user's id and username
     const payload = { id: user[0].id, username: user[0].username };
     const token = jwt.sign(payload, process.env.SECRET_KEY, {
-      expiresIn: "8h",
+      expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
     const recipient = user[0].email;
@@ -326,7 +326,7 @@ export const loginSuccessHandler = (req, res) => {
     },
     secretKey,
     {
-      expiresIn: "8h",
+      expiresIn: process.env.JWT_EXPIRES_IN,
       algorithm: "HS256",
     }
   );
@@ -337,7 +337,6 @@ export const loginSuccessHandler = (req, res) => {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
   });
-
   // Redirect to React app with the token
   res.redirect(`http://localhost:3000/auth/google/callback?token=${token}`);
 };

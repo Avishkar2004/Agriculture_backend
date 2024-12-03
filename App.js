@@ -7,6 +7,8 @@ import cookieParser from "cookie-parser"; // Add this to parse cookies
 import compression from "compression";
 import { db } from "./config/db.js";
 import session from "express-session";
+import http from "http";
+import { Server } from "socket.io";
 
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
@@ -42,9 +44,8 @@ import { searchProducts } from "./controllers/searchController.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import userRoutes from "./routes/userRoutes.js"; // Ensure correct import
 import deliveryAddressRoutes from "./routes/deliveryAddressRoutes.js";
+import reviewRouter from "./routes/reviewRouter.js"
 
-import http from "http";
-import { Server } from "socket.io";
 import { getProductById } from "./controllers/getProductById.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
@@ -149,7 +150,6 @@ if (cluster.isPrimary) {
   //!  Get Product by ID via search then render on next page
   app.get("/api/product/:id", getProductById);
 
-
   // This is for plant Growth Regulator
   app.get("/plantgrowthregulator", plantgrowthregulator);
 
@@ -164,6 +164,11 @@ if (cluster.isPrimary) {
 
   // for fetching product data (Fungicides)
   app.get("/fungicides", Fungicides);
+
+
+  // For Review's
+  app.use("/api/reviews", reviewRouter)
+
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);

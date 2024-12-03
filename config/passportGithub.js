@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { db } from "./db.js";
 import "dotenv/config";
+import { sendEmailWhenSignUp } from "../utils/email.js";
 
 passport.use(
   new GitHubStrategy(
@@ -65,6 +66,8 @@ passport.use(
             username: profile.username,
             email: email,
           };
+
+          await sendEmailWhenSignUp(newUser.email, newUser.username, "signup");
 
           // Proceed after user creation
           return done(null, newUser);
