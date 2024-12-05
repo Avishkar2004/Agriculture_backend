@@ -72,7 +72,6 @@ export const getReviewsByProduct = async (req, res) => {
 
 export const updateReview = async (req, res) => {
   const { product_id, user_id, rating, comment } = req.body;
-  console.log(req.body);
   // Validate input
   if (!product_id || !user_id || !rating || rating < 1 || rating > 5) {
     return res.status(400).json({
