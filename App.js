@@ -3,7 +3,7 @@ import cluster from "node:cluster";
 import cors from "cors";
 import express from "express";
 import "dotenv/config";
-import cookieParser from "cookie-parser"; // Add this to parse cookies
+import cookieParser from "cookie-parser";
 import compression from "compression";
 import { db } from "./config/db.js";
 import session from "express-session";
@@ -44,7 +44,7 @@ import { searchProducts } from "./controllers/searchController.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import userRoutes from "./routes/userRoutes.js"; // Ensure correct import
 import deliveryAddressRoutes from "./routes/deliveryAddressRoutes.js";
-import reviewRouter from "./routes/reviewRouter.js"
+import reviewRouter from "./routes/reviewRouter.js";
 
 import { getProductById } from "./controllers/getProductById.js";
 
@@ -113,7 +113,7 @@ if (cluster.isPrimary) {
     console.log(`User connected ${socket.id}`);
 
     //Send a client message
-    socket.emit("welcome", { message: "Kya hua bhai!" });
+    socket.emit("welcome", { message: "Ask agritell!" });
 
     //! Handle client message
     socket.on("client-message", (data) => {
@@ -165,10 +165,8 @@ if (cluster.isPrimary) {
   // for fetching product data (Fungicides)
   app.get("/fungicides", Fungicides);
 
-
   // For Review's
-  app.use("/api/reviews", reviewRouter)
-
+  app.use("/api/reviews", reviewRouter);
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);
