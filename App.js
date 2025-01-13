@@ -47,6 +47,7 @@ import deliveryAddressRoutes from "./routes/deliveryAddressRoutes.js";
 import reviewRouter from "./routes/reviewRouter.js";
 
 import { getProductById } from "./controllers/getProductById.js";
+import cacheMiddleware from "./middleware/cacheMiddleware.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -151,19 +152,19 @@ if (cluster.isPrimary) {
   app.get("/api/product/:id", getProductById);
 
   // This is for plant Growth Regulator
-  app.get("/plantgrowthregulator", plantgrowthregulator);
+  app.get("/plantgrowthregulator", cacheMiddleware, plantgrowthregulator);
 
   // This is for Organic Product
-  app.get("/organicproduct", getOrganicProducts);
+  app.get("/organicproduct", cacheMiddleware, getOrganicProducts);
 
   // This is for Micro Nutrient
-  app.get("/micro-nutrients", micronutrient);
+  app.get("/micro-nutrients", cacheMiddleware, micronutrient);
 
   // This is for Insecticide
-  app.get("/Insecticide", Insecticide);
+  app.get("/Insecticide", cacheMiddleware, Insecticide);
 
   // for fetching product data (Fungicides)
-  app.get("/fungicides", Fungicides);
+  app.get("/fungicides", cacheMiddleware, Fungicides);
 
   // For Review's
   app.use("/api/reviews", reviewRouter);
