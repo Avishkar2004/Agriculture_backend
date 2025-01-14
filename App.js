@@ -166,12 +166,12 @@ if (cluster.isPrimary) {
   app.get("/fungicides", cacheMiddleware, Fungicides);
 
   // For Review's
-  app.use("/api/reviews", cacheMiddleware, reviewRouter);
+  app.use("/api/reviews", reviewRouter);
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);
 
-  app.use("/api/delivery-address", cacheMiddleware, deliveryAddressRoutes);
+  app.use("/api/delivery-address", deliveryAddressRoutes);
   app.use("/api", deliveryAddressRoutes);
 
   app.get("/plantgrowthregulator/next/:id", getNextProductplantgrowthregulator);
