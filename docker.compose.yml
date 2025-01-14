@@ -1,27 +1,14 @@
 version: "3.8"
 services:
-  nodejs:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - redis
-    networks:
-      - backend
-
   redis:
-    image: "redis:alpine"
+    image: redis
+    container_name: redis-container
     ports:
       - "6379:6379"
-    networks:
-      - backend
-
-networks:
-  backend:
-    driver: bridge
+  app:
+    build: .
+    container_name: node-app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis

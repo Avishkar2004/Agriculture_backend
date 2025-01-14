@@ -1,4 +1,4 @@
-import redis from "../config/redis.js";
+import { redis } from "../config/redis.js";
 
 const cacheMiddleware = async (req, res, next) => {
   const cacheKey = req.originalUrl; // Use the requeset URl as the cache key
