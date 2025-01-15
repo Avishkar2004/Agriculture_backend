@@ -114,32 +114,34 @@ export const DeleteReview = async (req, res) => {
   const { product_id, user_id } = req.body;
 
   if (!product_id || !user_id) {
-      return res.status(400).json({ error: "Product ID and User ID are required." });
+    return res
+      .status(400)
+      .json({ error: "Product ID and User ID are required." });
   }
 
   try {
-      const [existingReview] = await db
-          .promise()
-          .execute("SELECT * FROM reviews WHERE product_id = ? AND user_id = ?", [
-              product_id,
-              user_id,
-          ]);
+    const [existingReview] = await db
+      .promise()
+      .execute("SELECT * FROM reviews WHERE product_id = ? AND user_id = ?", [
+        product_id,
+        user_id,
+      ]);
 
-      if (existingReview.length === 0) {
-          return res.status(404).json({ error: "Review not found." });
-      }
+    if (existingReview.length === 0) {
+      return res.status(404).json({ error: "Review not found." });
+    }
 
-      // Delete the review
-      await db
-          .promise()
-          .execute("DELETE FROM reviews WHERE product_id = ? AND user_id = ?", [
-              product_id,
-              user_id,
-          ]);
+    // Delete the review
+    await db
+      .promise()
+      .execute("DELETE FROM reviews WHERE product_id = ? AND user_id = ?", [
+        product_id,
+        user_id,
+      ]);
 
-      res.status(200).json({ message: "Review deleted successfully." });
+    res.status(200).json({ message: "Review deleted successfully." });
   } catch (error) {
-      console.error("Error deleting review:", error);
-      res.status(500).json({ error: "Internal server error." });
+    console.error("Error deleting review:", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 };

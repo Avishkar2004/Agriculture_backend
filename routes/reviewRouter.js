@@ -8,12 +8,12 @@ import {
 
 const router = express.Router();
 
+//! Add reviews
 router.post("/addreviews", addReview);
-
+//! get reviews
 router.get("/getreview/:id", getReviewsByProduct);
 
-//! New router for Update reviews
-
+//! New router for Update and delete reviews
 router.put("/updateReview", updateReview);
 
 router.delete("/deleteReview", DeleteReview);
