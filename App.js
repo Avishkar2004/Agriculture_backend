@@ -63,8 +63,8 @@ if (cluster.isPrimary) {
 } else {
   //Worker Can Share any TCp connection, like the one for Express
   const app = express();
-
   const server = http.createServer(app); //! Create an HTTP server using express
+
   const io = new Server(server, {
     cors: {
       origin: "http://localhost:3000", // Update to the React clie nt URL
@@ -110,19 +110,58 @@ if (cluster.isPrimary) {
   app.use(express.urlencoded({ extended: false }));
 
   io.on("connection", (socket) => {
-    console.log(`User connected ${socket.id}`);
-
-    //Send a client message
-    socket.emit("welcome", { message: "Ask agritell!" });
-
-    //! Handle client message
-    socket.on("client-message", (data) => {
-      console.log(`Message from client : ${data.text}`);
-      io.emit("server-message", { text: `Admin : ${data.text}` });
+    console.log("New client connected");
+  
+    // Join a room
+    socket.on("joinRoom", ({ room }) => {
+      console.log(`${socket.id} joined room: ${room}`);
+      socket.join(room);
+      io.to(room).emit("server-message", { text: `${socket.id} has joined the room.` });
     });
+  
+    // Handle messages sent to the room
+    socket.on("chatMessage", (data) => {
+      console.log("Message received:", data);
+      io.to(data.room).emit("message", data);
+    });
+  
+    // Clean up on disconnect
     socket.on("disconnect", () => {
-      console.log(`User disconnected : ${socket.id}`);
+      console.log("Client disconnected");
     });
+  });
+  
+
+  app.get("/api/messages/:room", authenticateToken, async (req, res) => {
+    const { room } = req.params;
+    try {
+      const [messages] = await db
+        .promise()
+        .execute(
+          "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC",
+          [room]
+        );
+      res.status(200).json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.post("/api/messages", authenticateToken, async (req, res) => {
+    const { sender_id, receiver_id, room, message } = req.body;
+    try {
+      await db
+        .promise()
+        .execute(
+          "INSERT INTO messages (sender_id, receiver_id, room, message) VALUES (?, ?, ?, ?)",
+          [sender_id, receiver_id, room, message]
+        );
+      res.status(201).json({ success: true, message: "Message saved." });
+    } catch (error) {
+      console.error("Error saving message:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   });
 
   // Endpoint for handling user signup/createAcc
