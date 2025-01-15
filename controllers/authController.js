@@ -72,9 +72,11 @@ export const loginHandler = async (req, res) => {
   const userAgent = req.headers["user-agent"];
   try {
     // Check if the username exists in the database
-    const [results] = await db
-      .promise()
-      .execute("SELECT * FROM users WHERE username = ?", [username]);
+    const [results] = await db.promise().execute(
+      "SELECT * FROM users WHERE username = ? OR email = ?",
+      [username, username] // Correctly pass both placeholders
+    );
+
     const existingUser = results[0];
 
     if (!existingUser) {
