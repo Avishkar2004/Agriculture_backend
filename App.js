@@ -135,39 +135,6 @@ if (cluster.isPrimary) {
       console.log("Client disconnected");
     });
   });
-
-  app.get("/api/messages/:room", authenticateToken, async (req, res) => {
-    const { room } = req.params;
-    try {
-      const [messages] = await db
-        .promise()
-        .execute(
-          "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC",
-          [room]
-        );
-      res.status(200).json(messages);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
-
-  app.post("/api/messages", authenticateToken, async (req, res) => {
-    const { sender_id, receiver_id, room, message } = req.body;
-    try {
-      await db
-        .promise()
-        .execute(
-          "INSERT INTO messages (sender_id, receiver_id, room, message) VALUES (?, ?, ?, ?)",
-          [sender_id, receiver_id, room, message]
-        );
-      res.status(201).json({ success: true, message: "Message saved." });
-    } catch (error) {
-      console.error("Error saving message:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
-
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
 
