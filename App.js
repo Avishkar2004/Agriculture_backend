@@ -111,26 +111,30 @@ if (cluster.isPrimary) {
 
   io.on("connection", (socket) => {
     console.log("New client connected");
-  
+
     // Join a room
-    socket.on("joinRoom", ({ room }) => {
-      console.log(`${socket.id} joined room: ${room}`);
+    socket.on("joinRoom", ({ username, room }) => {
+      console.log(`${username} joined room: ${room}`);
+      socket.username = username;
       socket.join(room);
-      io.to(room).emit("server-message", { text: `${socket.id} has joined the room.` });
+
+      // Broadcast to the room that a user has joined
+      io.to(room).emit("server-message", {
+        text: `${username} has joined the room.`,
+      });
     });
-  
+
     // Handle messages sent to the room
     socket.on("chatMessage", (data) => {
       console.log("Message received:", data);
       io.to(data.room).emit("message", data);
     });
-  
+
     // Clean up on disconnect
     socket.on("disconnect", () => {
       console.log("Client disconnected");
     });
   });
-  
 
   app.get("/api/messages/:room", authenticateToken, async (req, res) => {
     const { room } = req.params;
