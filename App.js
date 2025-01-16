@@ -130,6 +130,16 @@ if (cluster.isPrimary) {
       io.to(data.room).emit("message", data);
     });
 
+    // For user typing
+    socket.on("typing", (data) => {
+      socket.to(data.room).emit("typing", data.username); // Broadcase to others
+    });
+
+    // When user stop typing
+    socket.on("stop-typing", (data) => {
+      socket.on(data.room).emit("stop-typing", data.username); // Broadcast to other
+    });
+
     // Clean up on disconnect
     socket.on("disconnect", () => {
       console.log("Client disconnected");
