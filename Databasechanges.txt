@@ -11,6 +11,9 @@ CREATE TABLE users (
 ALTER TABLE users 
 ADD COLUMN github_id VARCHAR(255) DEFAULT NULL,
 ADD COLUMN google_id VARCHAR(255) DEFAULT NULL;
+ALTER TABLE users ADD COLUMN role ENUM('user', 'admin') DEFAULT 'user';
+UPDATE users SET role = 'admin' WHERE email = 'kakdevicky476@gmail.com';
+
 
 
 

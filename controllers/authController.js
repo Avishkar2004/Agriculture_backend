@@ -301,6 +301,12 @@ export const deleteUserHandler = async (req, res) => {
       .promise()
       .execute("DELETE FROM orders WHERE user_id = ?", [userId]);
 
+      // Delete reviews records associated with the user
+      await db
+      .promise()
+      .execute("DELETE FROM reviews WHERE user_id = ?", [userId]);
+
+
     // Delete the user from the database
     await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
 
