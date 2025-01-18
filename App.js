@@ -47,7 +47,7 @@ import reviewRouter from "./routes/reviewRouter.js";
 
 import { getProductById } from "./controllers/getProductById.js";
 import cacheMiddleware from "./middleware/cacheMiddleware.js";
-import useRouter from "./routes/admin.js";
+import useRouter from "./routes/adminRoute.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)

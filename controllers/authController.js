@@ -74,7 +74,7 @@ export const loginHandler = async (req, res) => {
     // Check if the username exists in the database
     const [results] = await db.promise().execute(
       "SELECT * FROM users WHERE username = ? OR email = ?",
-      [username, username] // Correctly pass both placeholders
+      [username, username] // Correctly passing both placeholders
     );
 
     const existingUser = results[0];
@@ -94,7 +94,11 @@ export const loginHandler = async (req, res) => {
 
     // Generate a JWT token
     const secretKey = process.env.SECRET_KEY;
-    const user = { id: existingUser.id, username: existingUser.username };
+    const user = {
+      id: existingUser.id,
+      username: existingUser.username,
+      email: existingUser.email,
+    };
     const token = jwt.sign(user, secretKey, {
       expiresIn: process.env.JWT_EXPIRES_IN,
       algorithm: "HS256",
@@ -122,7 +126,7 @@ export const loginHandler = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      user: { ...user, token, email: existingUser.email },
+      user: { ...user, token },
       browserInfo: userAgent,
       message: "Login successful.",
     });
@@ -301,11 +305,10 @@ export const deleteUserHandler = async (req, res) => {
       .promise()
       .execute("DELETE FROM orders WHERE user_id = ?", [userId]);
 
-      // Delete reviews records associated with the user
-      await db
+    // Delete reviews records associated with the user
+    await db
       .promise()
       .execute("DELETE FROM reviews WHERE user_id = ?", [userId]);
-
 
     // Delete the user from the database
     await db.promise().execute("DELETE FROM users WHERE id = ?", [userId]);
