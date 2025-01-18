@@ -12,7 +12,7 @@ export const adminAuth = (req, res, next) => {
       return res.status(403).send("Access Denied: Invalid token.");
     }
 
-    console.log("Decoded token:", decoded); // Add this to see the contents of the decoded token
+    // console.log("Decoded token:", decoded); // Add this to see the contents of the decoded token
 
     // Ensure decoded user data exists
     if (!decoded || !decoded.username || !decoded.email) {
