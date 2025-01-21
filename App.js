@@ -172,7 +172,7 @@ if (cluster.isPrimary) {
   //! For Search :-
   app.get("/search", searchProducts);
 
-  //!  Get Product by ID via search then render on next page
+  //!  Get Product by ID via search then render on next page / Search
   app.get("/api/product/:id", getProductById);
 
   // This is for plant Growth Regulator

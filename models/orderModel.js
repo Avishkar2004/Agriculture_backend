@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 
+// Create order for single product
 export async function createOrder(orderData) {
   const query = `
     INSERT INTO orders (
@@ -62,7 +63,7 @@ export async function createOrder(orderData) {
   }
 }
 
-// Fetch orders by user ID
+// Fetch orders by user ID / Show in header Orders
 export const getOrdersByUserId = async (userId) => {
   try {
     const [orders] = await db.promise().execute(

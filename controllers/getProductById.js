@@ -1,5 +1,7 @@
 import { db } from "../config/db.js";
 
+
+//! This is for search
 export const getProductById = async (req, res) => {
   const { id } = req.params;
   if (!id) {
