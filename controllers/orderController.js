@@ -1,4 +1,8 @@
-import { createOrder, getOrdersByUserId } from "../models/orderModel.js";
+import {
+  createOrder,
+  createOrderCheckOut,
+  getOrdersByUserId,
+} from "../models/orderModel.js";
 
 export async function placeOrder(req, res) {
   try {
@@ -28,3 +32,21 @@ export const getOrders = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+// Place order from checkout
+export async function placeOrderCheckOut(req, res) {
+  try {
+    const orderData = req.body;
+
+    // Pass the complete order data to the model function
+    await createOrderCheckOut(orderData);
+
+    res.status(201).json({ message: "Order placed successfully!" });
+  } catch (error) {
+    console.error("Order placement failed:", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to place order, please try again later." });
+  }
+}

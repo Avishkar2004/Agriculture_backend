@@ -96,3 +96,70 @@ export const getOrdersByUserId = async (userId) => {
     throw new Error("Error fetching orders: " + error.message);
   }
 };
+
+// Create order for single product
+export async function createOrderCheckOut(orderData) {
+  const query = `
+    INSERT INTO orders (
+      product_name,
+      product_id,
+      user_id,
+      quantity,
+      customer_name,
+      email,
+      phone_number,
+      address,
+      city,
+      state,
+      zip_code,
+      country,
+      payment_method,
+      credit_card,
+      upi_id,
+      bank_name,
+      order_status,
+      price
+    ) VALUES ?
+  `;
+
+  // Prepare the values as an array of arrays
+  const values = orderData.products.map((product) => [
+    product.productName,
+    product.productId,
+    orderData.userId,
+    product.quantity,
+    orderData.customerName,
+    orderData.email,
+    orderData.phoneNumber,
+    orderData.address,
+    orderData.city,
+    orderData.state,
+    orderData.zipCode,
+    orderData.country,
+    orderData.paymentMethod,
+    orderData.creditCard || null,
+    orderData.upiId || null,
+    orderData.bankName || null,
+    "pending", // Order status
+    product.totalPrice,
+  ]);
+
+  try {
+    // Execute the bulk insert
+    const result = await new Promise((resolve, reject) => {
+      db.query(query, [values], (error, results) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(results);
+      });
+    });
+
+    console.log(result);
+
+    return result.insertId; // Return the first inserted ID
+  } catch (error) {
+    console.error("Error while placing the order:", error.message);
+    throw new Error("Failed to place order");
+  }
+}

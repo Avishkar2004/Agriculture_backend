@@ -161,7 +161,7 @@ if (cluster.isPrimary) {
   app.post("/logout", logout);
 
   //! Delete User by Id
-  app.use("/api", userRoutes); // This line is correct
+  app.use("/api", userRoutes);
 
   // this is for reset password
   app.post("/resetpassword", resetPasswordHandler);
@@ -172,7 +172,7 @@ if (cluster.isPrimary) {
   //! For Search :-
   app.get("/search", searchProducts);
 
-  //!  Get Product by ID via search then render on next page / Search
+  //!  Get Product by ID via search / Search
   app.get("/api/product/:id", getProductById);
 
   // This is for plant Growth Regulator
