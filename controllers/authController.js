@@ -168,7 +168,6 @@ const transporter = nodemailer.createTransport({
 export const ForGetPassWord = async (req, res) => {
   try {
     const { email } = req.body;
-    // console.log("User Email For Reset Password :", email);
     // Server-side email format validation
     if (!email || !email.includes("@gmail.com")) {
       return res.status(400).send("Please provide a valid Gmail address.");
