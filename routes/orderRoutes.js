@@ -3,6 +3,7 @@ import {
   getOrders,
   placeOrder,
   placeOrderCheckOut,
+  trackOrder,
 } from "../controllers/orderController.js";
 import { authenticateToken } from "../middleware/User.js";
 // import { getCehckoutOrdersByUserId } from "../models/orderModel.js";
@@ -18,6 +19,7 @@ router.post("/checkoutOrder", placeOrderCheckOut);
 // Route to get user's orders
 router.get("/placedorders", authenticateToken, getOrders);
 
-// router.get("/checkoutOrders", getCehckoutOrdersByUserId)
+//  Track order
+router.get("/trackOrder/:orderId", authenticateToken, trackOrder);
 
 export default router;

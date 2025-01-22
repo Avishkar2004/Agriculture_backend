@@ -2,6 +2,7 @@ import {
   createOrder,
   createOrderCheckOut,
   getOrdersByUserId,
+  trackOrderById,
 } from "../models/orderModel.js";
 
 export async function placeOrder(req, res) {
@@ -33,7 +34,6 @@ export const getOrders = async (req, res) => {
   }
 };
 
-
 // Place order from checkout
 export async function placeOrderCheckOut(req, res) {
   try {
@@ -50,3 +50,19 @@ export async function placeOrderCheckOut(req, res) {
       .json({ message: "Failed to place order, please try again later." });
   }
 }
+
+// Track order
+export const trackOrder = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming user ID is available from authentication middleware
+    const { orderId } = req.params;
+
+    // Fetch order details using the model
+    const order = await trackOrderById(userId, orderId);
+
+    res.status(200).json({ success: true, order });
+  } catch (error) {
+    console.error("Error tracking order:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

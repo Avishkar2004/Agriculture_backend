@@ -97,7 +97,7 @@ export const getOrdersByUserId = async (userId) => {
   }
 };
 
-// Create order for single product
+// Create order for Multiple product
 export async function createOrderCheckOut(orderData) {
   const query = `
     INSERT INTO orders (
@@ -155,11 +155,40 @@ export async function createOrderCheckOut(orderData) {
       });
     });
 
-    console.log(result);
-
     return result.insertId; // Return the first inserted ID
   } catch (error) {
     console.error("Error while placing the order:", error.message);
     throw new Error("Failed to place order");
   }
 }
+
+// Track order
+export const trackOrderById = async (userId, orderId) => {
+  try {
+    const [order] = await db.promise().execute(
+      `SELECT 
+        o.id, 
+        o.product_name, 
+        o.quantity, 
+        o.order_status, 
+        o.created_at, 
+        o.price,
+        o.address, 
+        o.city, 
+        o.state, 
+        o.zip_code, 
+        o.country
+      FROM orders o
+      WHERE o.id = ? AND o.user_id = ?`,
+      [orderId, userId]
+    );
+
+    if (order.length === 0) {
+      throw new Error("Order not found");
+    }
+
+    return order[0];
+  } catch (error) {
+    throw new Error("Error fetching order: " + error.message);
+  }
+};
