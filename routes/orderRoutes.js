@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  cancelOrder,
   getOrders,
   placeOrder,
   placeOrderCheckOut,
@@ -21,5 +22,8 @@ router.get("/placedorders", authenticateToken, getOrders);
 
 //  Track order
 router.get("/trackOrder/:orderId", authenticateToken, trackOrder);
+
+// Cancel the Order
+router.patch("/cancelOrder/:orderId", authenticateToken, cancelOrder);
 
 export default router;

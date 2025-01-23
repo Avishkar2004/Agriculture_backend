@@ -192,3 +192,20 @@ export const trackOrderById = async (userId, orderId) => {
     throw new Error("Error fetching order: " + error.message);
   }
 };
+
+// Cancel the Order
+export const cancelOrderById = async (userId, orderId) => {
+  try {
+    // Update the `order_status` to 'canceled'
+    const [result] = await db.promise().execute(
+      `UPDATE orders 
+           SET order_status = 'Cancelled' 
+           WHERE id = ? AND user_id = ? AND order_status = 'Pending'`,
+      [orderId, userId]
+    );
+
+    return result; // Contains information about affected rows
+  } catch (error) {
+    throw new Error("Error canceling the order: " + error.message);
+  }
+};

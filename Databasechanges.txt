@@ -132,6 +132,8 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(id)          -- Foreign key constraint for user_id
 );
 
+ALTER TABLE orders MODIFY order_status ENUM('Pending', 'Shipped', 'Delivered', 'Cancelled');
+
 
 
 CREATE TABLE delivery_addresses (
@@ -170,20 +172,3 @@ ALTER TABLE reviews ADD UNIQUE KEY `unique_review` (product_id, user_id);
 
 
 
-CREATE TABLE checkOut (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,  -- Assuming you have a 'users' table to link to the user
-    name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(15) NOT NULL,
-    alternate_phone_number VARCHAR(15),
-    pincode VARCHAR(6) NOT NULL,
-    locality VARCHAR(255) NOT NULL,
-    street_address VARCHAR(255) NOT NULL,
-    city VARCHAR(255) NOT NULL,
-    state VARCHAR(255) NOT NULL,
-    landmark VARCHAR(255),
-    address_type ENUM('Home', 'Work') NOT NULL DEFAULT 'Home',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)  -- Assuming there is a users table
-);

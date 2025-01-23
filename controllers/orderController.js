@@ -1,4 +1,5 @@
 import {
+  cancelOrderById,
   createOrder,
   createOrderCheckOut,
   getOrdersByUserId,
@@ -64,5 +65,34 @@ export const trackOrder = async (req, res) => {
   } catch (error) {
     console.error("Error tracking order:", error.message);
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Cancel the order
+export const cancelOrder = async (req, res) => {
+  try {
+    const userId = req.user.id; // User ID from authentication middleware
+    const { orderId } = req.params;
+
+    // Call the model function to cancel the order
+    const result = await cancelOrderById(userId, orderId);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Order not found or already Cancelled",
+        });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Order Cancelled successfully" });
+  } catch (error) {
+    console.error("Error canceling order:", error.message);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to cancel the order" });
   }
 };
