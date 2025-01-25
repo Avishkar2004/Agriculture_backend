@@ -101,7 +101,7 @@ export const cancelOrder = async (req, res) => {
 // Generate Invoice
 export const generateInvoice = async (req, res) => {
   const { orderId } = req.params;
-  const userId = req.user.id; // Assume you have middleware to set `req.user`
+  const userId = req.user.id; // Assume middleware sets `req.user`
 
   try {
     const invoiceDetails = await getInvoiceDetails(orderId, userId);
@@ -110,7 +110,7 @@ export const generateInvoice = async (req, res) => {
       return res.status(404).json({ message: "Invoice details not found." });
     }
 
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 40 });
     const filename = `Invoice-${orderId}.pdf`;
 
     // Set response headers for PDF download
@@ -120,22 +120,79 @@ export const generateInvoice = async (req, res) => {
     // Pipe the PDF document to the response
     doc.pipe(res);
 
-    // Add invoice details to the PDF
-    doc.fontSize(20).text("Invoice", { align: "center" });
+    // Header Section
+    doc
+      .fillColor("#2C3E50")
+      .fontSize(24)
+      .text("Invoice", { align: "center", underline: true });
+
     doc.moveDown();
-    doc.fontSize(12).text(`Order ID: ${invoiceDetails.order_id}`);
+    doc
+      .fontSize(12)
+      .text("Thank you for shopping with us!", { align: "center" });
+    doc.moveDown(2);
+
+    // Invoice Details Section
+    doc
+      .fillColor("#000")
+      .fontSize(14)
+      .text(`Order ID: ${invoiceDetails.order_id}`, { continued: true })
+      .text(
+        `  Date: ${new Date(invoiceDetails.created_at).toLocaleDateString()}`,
+        {
+          align: "right",
+        }
+      );
+
     doc.text(`Customer: ${invoiceDetails.username}`);
     doc.text(`Email: ${invoiceDetails.email}`);
-    doc.text(
-      `Date: ${new Date(invoiceDetails.created_at).toLocaleDateString()}`
-    );
-    doc.text(`Product: ${invoiceDetails.product_name}`);
+    doc.moveDown();
+
+    // Separator Line
+    doc
+      .strokeColor("#CCCCCC")
+      .lineWidth(1)
+      .moveTo(40, doc.y)
+      .lineTo(570, doc.y)
+      .stroke();
+    doc.moveDown(1);
+
+    // Product Details Section
+    doc.fontSize(14).text("Product Details", { underline: true }).moveDown();
+    doc.fontSize(12).text(`Product: ${invoiceDetails.product_name}`);
     doc.text(`Quantity: ${invoiceDetails.quantity}`);
-    doc.text(`Total Price: ₹${invoiceDetails.price}`);
+    doc.text(`Price: ₹${invoiceDetails.price.toLocaleString()}`);
     doc.text(`Order Status: ${invoiceDetails.order_status}`);
     doc.moveDown();
 
-    doc.text("Thank you for shopping with us!", { align: "center" });
+    // Payment Summary
+    doc.fontSize(14).text("Payment Summary", { underline: true }).moveDown();
+    doc
+      .fontSize(12)
+      .text(`Subtotal: ₹${(invoiceDetails.price * 0.82).toLocaleString()}`);
+    doc.text(`Tax (18%): ₹${(invoiceDetails.price * 0.18).toFixed(2)}`);
+    doc
+      .fontSize(14)
+      .fillColor("#2C3E50")
+      .text(`Total: ₹${invoiceDetails.price.toLocaleString()}`, {
+        align: "right",
+      });
+
+    doc.moveDown(2);
+
+    // Footer
+    doc
+      .fontSize(10)
+      .fillColor("#999999")
+      .text("For any queries, contact support@example.com", {
+        align: "center",
+      });
+    doc.text(
+      "This is a computer-generated invoice, no signature is required.",
+      {
+        align: "center",
+      }
+    );
 
     // Finalize the PDF
     doc.end();

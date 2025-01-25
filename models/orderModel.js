@@ -233,7 +233,7 @@ export const getInvoiceDetails = async (orderId, userId) => {
     if (order.length === 0) {
       throw new Error("Invoice not available for this order.");
     }
-    console.log("Fetched order details:", order[0]); // Debugging log
+    // console.log("Fetched order details:", order[0]); // Debugging log
     return order[0];
   } catch (error) {
     console.error("Error fetching invoice:", error);
