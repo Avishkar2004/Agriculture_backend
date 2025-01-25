@@ -1,6 +1,7 @@
 import express from "express";
 import {
   cancelOrder,
+  generateInvoice,
   getOrders,
   placeOrder,
   placeOrderCheckOut,
@@ -25,5 +26,9 @@ router.get("/trackOrder/:orderId", authenticateToken, trackOrder);
 
 // Cancel the Order
 router.patch("/cancelOrder/:orderId", authenticateToken, cancelOrder);
+
+// Generate Invoice Route
+
+router.get("/generateInvoice/:orderId", authenticateToken, generateInvoice);
 
 export default router;

@@ -209,3 +209,36 @@ export const cancelOrderById = async (userId, orderId) => {
     throw new Error("Error canceling the order: " + error.message);
   }
 };
+
+// Generate Invoice
+
+export const getInvoiceDetails = async (orderId, userId) => {
+  console.log("Order ID:", orderId); // Debugging log
+  console.log("User ID:", userId); // Debugging log
+  try {
+    const [order] = await db.promise().execute(
+      `SELECT 
+            o.id AS order_id,
+            o.product_name,
+            o.price,
+            o.quantity,
+            o.order_status,
+            o.created_at,
+            u.username,
+            u.email
+          FROM orders o
+          JOIN users u ON o.user_id = u.id
+          WHERE o.id = ? AND o.user_id = ? AND o.order_status = 'Delivered'`,
+      [orderId, userId || null]
+    );
+
+    if (order.length === 0) {
+      throw new Error("Invoice not available for this order.");
+    }
+    console.log("Fetched order details:", order[0]); // Debugging log
+    return order[0];
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    throw new Error("Error fetching invoice: " + error.message);
+  }
+};

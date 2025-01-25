@@ -1,7 +1,7 @@
 import { db } from "../config/db.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import {
   sendEmailWhenSignUp,
@@ -30,7 +30,7 @@ export const signupHandler = async (req, res) => {
       return res.status(400).json({ message });
     }
 
-    const hashedPassword = await bcryptjs.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await db
       .promise()
       .execute(
@@ -83,8 +83,8 @@ export const loginHandler = async (req, res) => {
       return res.status(401).json({ error: "Invalid username." });
     }
 
-    // Validate password using bcryptjs
-    const isPasswordValid = await bcryptjs.compare(
+    // Validate password using bcrypt
+    const isPasswordValid = await bcrypt.compare(
       password,
       existingUser.password
     );
@@ -238,7 +238,7 @@ export const resetPasswordHandler = async (req, res) => {
     const secretKey = crypto.randomBytes(32).toString("hex");
     // console.log("Secret Key:", secretKey);
 
-    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // console.log("Hashed Password :", hashedPassword);
     // Update the user's password in the database
