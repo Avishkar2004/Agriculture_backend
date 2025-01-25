@@ -13,10 +13,10 @@ import { authenticateToken } from "../middleware/User.js";
 const router = express.Router();
 
 // Route for placing an order
-router.post("/orders", placeOrder);
+router.post("/orders", authenticateToken, placeOrder);
 
 // Route for placing checkout order
-router.post("/checkoutOrder", placeOrderCheckOut);
+router.post("/checkoutOrder", authenticateToken, placeOrderCheckOut);
 
 // Route to get user's orders
 router.get("/placedorders", authenticateToken, getOrders);

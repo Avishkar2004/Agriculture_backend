@@ -100,43 +100,47 @@ export const cancelOrder = async (req, res) => {
 
 // Generate Invoice
 export const generateInvoice = async (req, res) => {
-  const { userId } = req.user;
   const { orderId } = req.params;
-
-  if (!userId) {
-    return res.status(400).json({ message: "User ID is missing" });
-  }
-
-  console.log("User IDs for generateInvoice:", userId);
+  const userId = req.user.id; // Assume you have middleware to set `req.user`
 
   try {
-    const invoice = await getInvoiceDetails(orderId, userId);
+    const invoiceDetails = await getInvoiceDetails(orderId, userId);
+
+    if (!invoiceDetails) {
+      return res.status(404).json({ message: "Invoice details not found." });
+    }
 
     const doc = new PDFDocument();
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=Invoice-${orderId}.pdf`
-    );
+    const filename = `Invoice-${orderId}.pdf`;
 
+    // Set response headers for PDF download
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    res.setHeader("Content-Type", "application/pdf");
+
+    // Pipe the PDF document to the response
     doc.pipe(res);
 
-    doc.fontSize(18).text("Invoice", { align: "center" });
+    // Add invoice details to the PDF
+    doc.fontSize(20).text("Invoice", { align: "center" });
     doc.moveDown();
-    doc.fontSize(12).text(`Order ID: ${invoice.order_id}`);
-    doc.text(`Product: ${invoice.product_name}`);
-    doc.text(`Price: ₹${invoice.price}`);
-    doc.text(`Quantity: ${invoice.quantity}`);
-    doc.text(`Status: ${invoice.order_status}`);
+    doc.fontSize(12).text(`Order ID: ${invoiceDetails.order_id}`);
+    doc.text(`Customer: ${invoiceDetails.username}`);
+    doc.text(`Email: ${invoiceDetails.email}`);
     doc.text(
-      `Ordered On: ${new Date(invoice.created_at).toLocaleDateString()}`
+      `Date: ${new Date(invoiceDetails.created_at).toLocaleDateString()}`
     );
+    doc.text(`Product: ${invoiceDetails.product_name}`);
+    doc.text(`Quantity: ${invoiceDetails.quantity}`);
+    doc.text(`Total Price: ₹${invoiceDetails.price}`);
+    doc.text(`Order Status: ${invoiceDetails.order_status}`);
     doc.moveDown();
-    doc.text(`Customer Name: ${invoice.username}`);
-    doc.text(`Customer Email: ${invoice.email}`);
+
+    doc.text("Thank you for shopping with us!", { align: "center" });
+
+    // Finalize the PDF
     doc.end();
   } catch (error) {
-    console.error("Error generating invoice:", error);
-    res.status(400).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Error generating invoice." });
   }
 };

@@ -213,8 +213,6 @@ export const cancelOrderById = async (userId, orderId) => {
 // Generate Invoice
 
 export const getInvoiceDetails = async (orderId, userId) => {
-  console.log("Order ID:", orderId); // Debugging log
-  console.log("User ID:", userId); // Debugging log
   try {
     const [order] = await db.promise().execute(
       `SELECT 
