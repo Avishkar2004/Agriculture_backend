@@ -47,7 +47,6 @@ import reviewRouter from "./routes/reviewRouter.js";
 
 import { getProductById } from "./controllers/getProductById.js";
 import cacheMiddleware from "./middleware/cacheMiddleware.js";
-import useRouter from "./routes/adminRoute.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -105,15 +104,13 @@ if (cluster.isPrimary) {
   app.use(githubPassport.session());
 
   app.use(compression());
-  app.use(cookieParser()); // Use cookie parser middleware
+  app.use(cookieParser());
 
   app.use(cors());
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  //! Admin Controller
-  app.use(useRouter);
 
   io.on("connection", (socket) => {
     console.log("New client connected");
@@ -151,6 +148,7 @@ if (cluster.isPrimary) {
       console.log("Client disconnected");
     });
   });
+
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
 

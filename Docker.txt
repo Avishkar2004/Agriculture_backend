@@ -1,5 +1,7 @@
 What i have done to run redis on docker ?
 
+
+Run this command on docker Terminal
 - docker run --name redis-container -p 6379:6379 -d redis
 
 npm install ioredis

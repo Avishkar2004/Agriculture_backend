@@ -5,7 +5,7 @@ const cacheMiddleware = async (req, res, next) => {
   const cacheData = await redis.get(cacheKey);
 
   if (cacheData) {
-    // console.log("Cache hit");
+    // console.log("Cache hit on Redis");
     return res.json(JSON.parse(cacheData));
   }
   res.sendResponse = res.json;
