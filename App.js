@@ -20,9 +20,7 @@ import {
 } from "./controllers/authController.js";
 import passport from "./config/passport.js";
 import githubPassport from "./config/passportGithub.js";
-
 import authRouters from "./routes/auth.js";
-
 import { plantgrowthregulator } from "./models/plantgrowthregulator.js";
 import { micronutrient } from "./models/micronutrients.js";
 import { Insecticide } from "./models/Insecticide.js";
@@ -47,6 +45,9 @@ import reviewRouter from "./routes/reviewRouter.js";
 
 import { getProductById } from "./controllers/getProductById.js";
 import cacheMiddleware from "./middleware/cacheMiddleware.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+import aiReviewRoutes from "./routes/aiReviewRoutes.js";
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -63,6 +64,7 @@ if (cluster.isPrimary) {
 } else {
   //Worker Can Share any TCp connection, like the one for Express
   const app = express();
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
   const server = http.createServer(app); //! Create an HTTP server using express
 
@@ -110,7 +112,6 @@ if (cluster.isPrimary) {
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-
 
   io.on("connection", (socket) => {
     console.log("New client connected");
@@ -191,6 +192,29 @@ if (cluster.isPrimary) {
 
   // For Review's
   app.use("/api/reviews", reviewRouter);
+
+  // For generate AI Reviews
+  app.use("/api/reviews/", aiReviewRoutes);
+
+  // app.post("/generate-gemini-review", async (req, res) => {
+  //   const { productId } = req.body;
+  //   console.log("productId", productId);
+  //   try {
+  //     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  //     const prompt = `Write a short, engaging customer review for a product with ID: ${productId}.
+  //     The review should include a rating from 1 to 5 and a comment.`;
+
+  //     const result = await model.generateContent(prompt);
+  //     const text = result.response.candidates[0].content.parts[0].text.trim();
+
+  //     const rating = Math.floor(Math.random() * 5) + 1; // Generate a random rating (1-5)
+  //     res.json({ rating, comment: text });
+  //     console.log("Result:", result);
+  //   } catch (error) {
+  //     console.error("Gemini AI Review Generation Error:", error);
+  //     res.status(500).json({ error: "Failed to generate AI review." });
+  //   }
+  // });
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);

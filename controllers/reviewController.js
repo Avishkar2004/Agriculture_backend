@@ -1,4 +1,3 @@
-import { response } from "express";
 import { db } from "../config/db.js";
 
 // Add a review
