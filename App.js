@@ -129,30 +129,19 @@ if (cluster.isPrimary) {
     });
 
     // Handle messages sent to the room
-    socket.on("chatMessage", async (data) => {
+    socket.on("chatMessage", (data) => {
       console.log("Message received:", data);
-
-      // Emit user message to the room
       io.to(data.room).emit("message", data);
-
-      // If "Avishkar" sends a message, AI should reply automatically
-      if (data.username === "Avishkar") {
-        const aiResponse = await generateAIResponse(data.text);
-        io.to(data.room).emit("message", {
-          username: "Avishkar",
-          text: aiResponse,
-        });
-      }
     });
 
     // For user typing
     socket.on("typing", (data) => {
-      socket.to(data.room).emit("typing", data.username); // Broadcast to others
+      socket.to(data.room).emit("typing", data.username); // Broadcase to others
     });
 
-    // When user stops typing
+    // When user stop typing
     socket.on("stop-typing", (data) => {
-      socket.to(data.room).emit("stop-typing", data.username); // Broadcast to others
+      socket.on(data.room).emit("stop-typing", data.username); // Broadcast to other
     });
 
     // Clean up on disconnect
@@ -160,18 +149,6 @@ if (cluster.isPrimary) {
       console.log("Client disconnected");
     });
   });
-
-  // Function to generate AI responses
-  async function generateAIResponse(userInput) {
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await model.generateContent(userInput);
-      return result.response.text(); // Return AI-generated response
-    } catch (error) {
-      console.error("AI Error:", error);
-      return "Sorry, I couldn't generate a response.";
-    }
-  }
 
   // Endpoint for handling user signup/createAcc
   app.post("/users", signupHandler);
