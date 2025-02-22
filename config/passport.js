@@ -12,7 +12,7 @@ passport.use(
       callbackURL: "http://localhost:8080/auth/google/callback",
       passReqToCallback: true, // Enable req access in the callback
     },
-    async (req, accessToken, refreshToken, profile, done) => {
+    async (req, profile, done) => {
       try {
         // Capture User-Agent from the request headers
         const userAgent = req.headers["user-agent"];
