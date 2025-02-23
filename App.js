@@ -196,26 +196,6 @@ if (cluster.isPrimary) {
   // For generate AI Reviews
   app.use("/api/reviews/", aiReviewRoutes);
 
-  // app.post("/generate-gemini-review", async (req, res) => {
-  //   const { productId } = req.body;
-  //   console.log("productId", productId);
-  //   try {
-  //     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  //     const prompt = `Write a short, engaging customer review for a product with ID: ${productId}.
-  //     The review should include a rating from 1 to 5 and a comment.`;
-
-  //     const result = await model.generateContent(prompt);
-  //     const text = result.response.candidates[0].content.parts[0].text.trim();
-
-  //     const rating = Math.floor(Math.random() * 5) + 1; // Generate a random rating (1-5)
-  //     res.json({ rating, comment: text });
-  //     console.log("Result:", result);
-  //   } catch (error) {
-  //     console.error("Gemini AI Review Generation Error:", error);
-  //     res.status(500).json({ error: "Failed to generate AI review." });
-  //   }
-  // });
-
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);
 
