@@ -37,6 +37,9 @@ npm run dev
 
 go to postman and then hit req twice on http://localhost:8080/plantgrowthregulator and you will get cache hit in the console
 
+===============
+
+now im using a Gemini AI Api from a kakdevicky476@gmail.com and OAuth client
 
 ========
 
