@@ -66,11 +66,16 @@ if (cluster.isPrimary) {
   const app = express();
   const server = http.createServer(app); //! Create an HTTP server using express
 
+  app.set("trust proxy", 1);
+
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 Minute
     max: 100, // Limit each IP to 100 requests per window
+    standardHeaders: true, // Return rate Limit info in headers
+    legacyHeaders: false, // Disable legacy headers
   });
 
+  // Apply rate limiting to all requests
   app.use(limiter);
 
   const io = new Server(server, {
@@ -135,7 +140,7 @@ if (cluster.isPrimary) {
 
     // Handle messages sent to the room
     socket.on("chatMessage", (data) => {
-      console.log("Message received:", data);
+      // console.log("Message received:", data);
       io.to(data.room).emit("message", data);
     });
 
