@@ -9,6 +9,7 @@ import { db } from "./config/db.js";
 import session from "express-session";
 import http from "http";
 import { Server } from "socket.io";
+import rateLimit from "express-rate-limit";
 import { authenticateToken } from "./middleware/User.js";
 import { getOrganicProducts } from "./models/organicproduct.js";
 import {
@@ -45,7 +46,6 @@ import reviewRouter from "./routes/reviewRouter.js";
 
 import { getProductById } from "./controllers/getProductById.js";
 import cacheMiddleware from "./middleware/cacheMiddleware.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import aiReviewRoutes from "./routes/aiReviewRoutes.js";
 
@@ -64,9 +64,14 @@ if (cluster.isPrimary) {
 } else {
   //Worker Can Share any TCp connection, like the one for Express
   const app = express();
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
-
   const server = http.createServer(app); //! Create an HTTP server using express
+
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 Minute
+    max: 100, // Limit each IP to 100 requests per window
+  });
+
+  app.use(limiter);
 
   const io = new Server(server, {
     cors: {
@@ -193,7 +198,7 @@ if (cluster.isPrimary) {
   // For Review's
   app.use("/api/reviews", reviewRouter);
 
-  // For generate AI Reviews
+  //! For generate AI Reviews
   app.use("/api/reviews/", aiReviewRoutes);
 
   //! For order/ placedOrders info
