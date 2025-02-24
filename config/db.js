@@ -9,7 +9,7 @@ export const db = mysql2.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 10, // You can adjust this bases on traffic
   queueLimit: 0,
 });
 
