@@ -48,7 +48,6 @@ import { getProductById } from "./controllers/getProductById.js";
 import cacheMiddleware from "./middleware/cacheMiddleware.js";
 
 import aiReviewRoutes from "./routes/aiReviewRoutes.js";
-import reviewFeedbackRoutes from "./routes/reviewFeedbackRoutes.js"
 
 const numCPUs = os.cpus().length; //get the number of available CPU Cores
 // console.log(numCPUs)
@@ -206,9 +205,6 @@ if (cluster.isPrimary) {
 
   //! For generate AI Reviews
   app.use("/api/reviews/", aiReviewRoutes);
-
-
-  app.use("/api/feedbackreview",reviewFeedbackRoutes)
 
   //! For order/ placedOrders info
   app.use("/api", authenticateToken, orderRoutes);

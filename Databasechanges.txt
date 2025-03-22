@@ -169,28 +169,3 @@ CREATE TABLE ratings (
 );
 
 ALTER TABLE reviews ADD UNIQUE KEY `unique_review` (product_id, user_id);
-
-
-CREATE TABLE review_feedback (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    review_id INT NOT NULL,
-    user_id INT NOT NULL,
-    like_count INT DEFAULT 0,
-    dislike_count INT DEFAULT 0,
-    report_count INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_feedback (review_id, user_id) -- Ensures a user can only have one entry per review
-);
-
-
-SELECT 
-    rf.review_id, 
-    r.user_id AS reviewer_id, 
-    SUM(rf.like_count) AS total_likes, 
-    SUM(rf.dislike_count) AS total_dislikes, 
-    SUM(rf.report_count) AS total_reports
-FROM review_feedback rf
-JOIN reviews r ON rf.review_id = r.id
-GROUP BY rf.review_id, r.user_id;
