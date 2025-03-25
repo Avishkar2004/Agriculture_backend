@@ -1,3 +1,4 @@
+import { db } from "../config/db.js";
 import {
   cancelOrderById,
   createOrder,
@@ -12,15 +13,10 @@ import PDFDocument from "pdfkit";
 export async function placeOrder(req, res) {
   try {
     const orderData = req.body;
-
-    // Call the createOrder function from the model
     const orderId = await createOrder(orderData);
-
-    // Return a success response
     res.status(201).json({ message: "Order placed successfully!", orderId });
   } catch (error) {
     console.error("Order placement failed:", error.message);
-    // Return an error response with proper status code
     res
       .status(500)
       .json({ message: "Failed to place order, please try again later." });
@@ -29,12 +25,79 @@ export async function placeOrder(req, res) {
 
 export const getOrders = async (req, res) => {
   try {
-    const userId = req.user.id; // assuming `req.user` is populated after authentication (e.g., from JWT or session)
+    const userId = req.user.id;
     const orders = await getOrdersByUserId(userId);
     res.status(200).json({ success: true, orders });
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+    console.log("Received orderId:", orderId);
+    console.log("Received status:", status);
+
+    if (typeof status !== "string") {
+      console.error("❌ Error: status is not a string!", status);
+      return res.status(400).json({
+        error: `Invalid order status: Expected a string, but got ${typeof status}`,
+      });
+    }
+
+    const validStatuses = ["Pending", "Shipped", "Delivered", "Cancelled"];
+    const formattedStatus =
+      status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+    if (!validStatuses.includes(formattedStatus)) {
+      return res.status(400).json({ error: `Invalid order status: ${status}` });
+    }
+
+    await db
+      .promise()
+      .execute(`UPDATE orders SET order_status = ? WHERE id = ?`, [
+        formattedStatus,
+        orderId,
+      ]);
+    console.log(`✅ Order ${orderId} status updated to ${formattedStatus}`);
+    res.status(200).json({ message: "Order status updated successfully" });
+  } catch (error) {
+    console.error("❌ Error updating order status:", error.message);
+    res
+      .status(500)
+      .json({ error: "Error updating order status: " + error.message });
+  }
+};
+
+export const autoCompleteOrder = async (orderId) => {
+  try {
+    setTimeout(async () => {
+      try {
+        await updateOrderStatus(
+          { body: { orderId, status: "Shipped" } },
+          { status: () => ({ json: () => {} }) }
+        );
+        console.log(`Order ${orderId} marked as Shipped`);
+
+        setTimeout(async () => {
+          try {
+            await updateOrderStatus(
+              { body: { orderId, status: "Delivered" } },
+              { status: () => ({ json: () => {} }) }
+            );
+            console.log(`Order ${orderId} marked as Delivered`);
+          } catch (error) {
+            console.error(`Error delivering order ${orderId}:`, error.message);
+          }
+        }, 60000);
+      } catch (error) {
+        console.error(`Error shipping order ${orderId}:`, error.message);
+      }
+    }, 30000);
+  } catch (error) {
+    console.error(`Error auto-completing order ${orderId}:`, error.message);
   }
 };
 
@@ -58,12 +121,10 @@ export async function placeOrderCheckOut(req, res) {
 // Track order
 export const trackOrder = async (req, res) => {
   try {
-    const userId = req.user.id; // Assuming user ID is available from authentication middleware
+    const userId = req.user.id;
     const { orderId } = req.params;
-
     // Fetch order details using the model
     const order = await trackOrderById(userId, orderId);
-
     res.status(200).json({ success: true, order });
   } catch (error) {
     console.error("Error tracking order:", error.message);
