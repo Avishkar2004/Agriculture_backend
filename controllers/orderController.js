@@ -73,44 +73,82 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 export const autoCompleteOrder = async (orderId) => {
-  `🚀 Auto-completing order ${orderId}`;
+  try {
+    // 🔹 Fetch the current order status
+    const [rows] = await db
+      .promise()
+      .execute(`SELECT order_status FROM orders WHERE id = ?`, [orderId]);
 
-  setTimeout(async () => {
-    try {
-      const [result] = await db
-        .promise()
-        .execute(`UPDATE orders SET order_status = 'Shipped' WHERE id = ?`, [
-          orderId,
-        ]);
-
-      if (result.affectedRows > 0) {
-        console.log(`✅ Order ${orderId} successfully marked as Shipped`);
-      } else {
-        console.warn(`⚠️ Order ${orderId} update failed (Shipped)`);
-      }
-
-      setTimeout(async () => {
-        try {
-          const [delResult] = await db
-            .promise()
-            .execute(
-              `UPDATE orders SET order_status = 'Delivered' WHERE id = ?`,
-              [orderId]
-            );
-
-          if (delResult.affectedRows > 0) {
-            console.log(`✅ Order ${orderId} successfully marked as Delivered`);
-          } else {
-            console.warn(`⚠️ Order ${orderId} update failed (Delivered)`);
-          }
-        } catch (error) {
-          console.error(`❌ Error delivering order ${orderId}:`, error.message);
-        }
-      }, 518400000);
-    } catch (error) {
-      console.error(`❌ Error shipping order ${orderId}:`, error.message);
+    if (!rows.length) {
+      console.warn(`⚠️ Order ${orderId} not found`);
+      return;
     }
-  }, 259200000);
+
+    const currentStatus = rows[0].order_status;
+
+    // ✅ Stop if the order is already "Delivered" or "Cancelled"
+    if (currentStatus === "Delivered" || currentStatus === "Cancelled") {
+      return;
+    }
+
+    // 🔹 Update to "Shipped" after 3 seconds
+    setTimeout(async () => {
+      try {
+        const [result] = await db
+          .promise()
+          .execute(`UPDATE orders SET order_status = 'Shipped' WHERE id = ?`, [
+            orderId,
+          ]);
+
+        if (result.affectedRows > 0) {
+          console.log(`✅ Order ${orderId} successfully marked as Shipped`);
+        } else {
+          console.warn(`⚠️ Order ${orderId} update failed (Shipped)`);
+        }
+
+        // ✅ Re-check status before updating to "Delivered"
+        const [rowsAfterShip] = await db
+          .promise()
+          .execute(`SELECT order_status FROM orders WHERE id = ?`, [orderId]);
+
+        if (rowsAfterShip[0].order_status !== "Shipped") {
+          console.log(
+            `⚠️ Order ${orderId} status changed externally. Skipping delivery update.`
+          );
+          return;
+        }
+
+        // 🔹 Update to "Delivered" after another 6 seconds
+        setTimeout(async () => {
+          try {
+            const [delResult] = await db
+              .promise()
+              .execute(
+                `UPDATE orders SET order_status = 'Delivered' WHERE id = ?`,
+                [orderId]
+              );
+
+            if (delResult.affectedRows > 0) {
+              console.log(
+                `✅ Order ${orderId} successfully marked as Delivered`
+              );
+            } else {
+              console.warn(`⚠️ Order ${orderId} update failed (Delivered)`);
+            }
+          } catch (error) {
+            console.error(
+              `❌ Error delivering order ${orderId}:`,
+              error.message
+            );
+          }
+        }, 518400000);
+      } catch (error) {
+        console.error(`❌ Error shipping order ${orderId}:`, error.message);
+      }
+    }, 259200000);
+  } catch (error) {
+    console.error(`❌ Error fetching order ${orderId} status:`, error.message);
+  }
 };
 
 export const getOrderStatus = async (req, res) => {
