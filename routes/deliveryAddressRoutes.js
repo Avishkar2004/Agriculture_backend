@@ -2,11 +2,12 @@ import express from "express";
 import {
   addDeliveryAddress,
   fetchDeliveryAddresses,
-} from "../controllers/deliveryAddressController.js"; // Use ES module import syntax
+} from "../controllers/deliveryAddressController.js";
+import { authenticateToken } from "../middleware/User.js";
 
 const router = express.Router();
 
-router.post("/add", addDeliveryAddress);
-router.get("/deliveryAddress", fetchDeliveryAddresses);
+router.post("/add", authenticateToken, addDeliveryAddress);
+router.get("/deliveryAddress", authenticateToken, fetchDeliveryAddresses);
 
-export default router; // Use ES module export
+export default router;

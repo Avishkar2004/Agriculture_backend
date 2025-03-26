@@ -14,6 +14,10 @@ export async function placeOrder(req, res) {
   try {
     const orderData = req.body;
     const orderId = await createOrder(orderData);
+
+    // Start auto status update
+    await autoCompleteOrder(orderId);
+
     res.status(201).json({ message: "Order placed successfully!", orderId });
   } catch (error) {
     console.error("Order placement failed:", error.message);
@@ -37,8 +41,6 @@ export const getOrders = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
-    console.log("Received orderId:", orderId);
-    console.log("Received status:", status);
 
     if (typeof status !== "string") {
       console.error("❌ Error: status is not a string!", status);
@@ -61,7 +63,6 @@ export const updateOrderStatus = async (req, res) => {
         formattedStatus,
         orderId,
       ]);
-    console.log(`✅ Order ${orderId} status updated to ${formattedStatus}`);
     res.status(200).json({ message: "Order status updated successfully" });
   } catch (error) {
     console.error("❌ Error updating order status:", error.message);
@@ -72,32 +73,61 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 export const autoCompleteOrder = async (orderId) => {
-  try {
-    setTimeout(async () => {
-      try {
-        await updateOrderStatus(
-          { body: { orderId, status: "Shipped" } },
-          { status: () => ({ json: () => {} }) }
-        );
-        console.log(`Order ${orderId} marked as Shipped`);
+  `🚀 Auto-completing order ${orderId}`;
 
-        setTimeout(async () => {
-          try {
-            await updateOrderStatus(
-              { body: { orderId, status: "Delivered" } },
-              { status: () => ({ json: () => {} }) }
-            );
-            console.log(`Order ${orderId} marked as Delivered`);
-          } catch (error) {
-            console.error(`Error delivering order ${orderId}:`, error.message);
-          }
-        }, 60000);
-      } catch (error) {
-        console.error(`Error shipping order ${orderId}:`, error.message);
+  setTimeout(async () => {
+    try {
+      const [result] = await db
+        .promise()
+        .execute(`UPDATE orders SET order_status = 'Shipped' WHERE id = ?`, [
+          orderId,
+        ]);
+
+      if (result.affectedRows > 0) {
+        console.log(`✅ Order ${orderId} successfully marked as Shipped`);
+      } else {
+        console.warn(`⚠️ Order ${orderId} update failed (Shipped)`);
       }
-    }, 30000);
+
+      setTimeout(async () => {
+        try {
+          const [delResult] = await db
+            .promise()
+            .execute(
+              `UPDATE orders SET order_status = 'Delivered' WHERE id = ?`,
+              [orderId]
+            );
+
+          if (delResult.affectedRows > 0) {
+            console.log(`✅ Order ${orderId} successfully marked as Delivered`);
+          } else {
+            console.warn(`⚠️ Order ${orderId} update failed (Delivered)`);
+          }
+        } catch (error) {
+          console.error(`❌ Error delivering order ${orderId}:`, error.message);
+        }
+      }, 518400000);
+    } catch (error) {
+      console.error(`❌ Error shipping order ${orderId}:`, error.message);
+    }
+  }, 259200000);
+};
+
+export const getOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const [result] = await db
+      .promise()
+      .execute(`SELECT order_status FROM orders WHERE id = ?`, [orderId]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.status(200).json({ status: result[0].order_status });
   } catch (error) {
-    console.error(`Error auto-completing order ${orderId}:`, error.message);
+    console.error("❌ Error fetching order status:", error.message);
+    res.status(500).json({ error: "Error fetching order status" });
   }
 };
 

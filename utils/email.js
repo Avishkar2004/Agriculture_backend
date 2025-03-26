@@ -30,7 +30,6 @@ export const sendEmailWhenSignUp = async (recipient, username) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    // console.log("Email send: " + info.response);
   } catch (error) {
     console.error("Error Sending email: ", error);
     throw error;
@@ -59,7 +58,6 @@ export const sendEmailWhenLogin = async (recipient, username) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    // console.log("Email send: " + info.response);
   } catch {
     console.error("Error sendng email: ", error);
     throw error;

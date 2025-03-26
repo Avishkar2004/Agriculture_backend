@@ -4,6 +4,10 @@ import {
 } from "../models/deliveryAddressModel.js"; // Use .js for ES module imports
 
 export const addDeliveryAddress = (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Unauthorized: User not found" });
+  }
+
   const {
     name,
     phoneNumber,
@@ -16,8 +20,7 @@ export const addDeliveryAddress = (req, res) => {
     landmark,
     addressType,
   } = req.body;
-  const userId = req.user.id;
-
+  const userId = req.user.id; // Assume middleware sets `req.user`
 
   if (
     !name ||
@@ -47,7 +50,6 @@ export const addDeliveryAddress = (req, res) => {
     addressType,
   };
 
-  // Call the model function to insert the address
   insertDeliveryAddress(address, userId, (err, result) => {
     if (err) {
       return res

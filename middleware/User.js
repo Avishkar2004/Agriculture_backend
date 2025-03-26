@@ -2,9 +2,7 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 export const authenticateToken = (req, res, next) => {
-  // console.log("Cookies in request:", req.cookies); // Log cookies
   const token = req.cookies.authToken;
-  // console.log("Token :", token);
 
   if (!token) {
     return res
@@ -17,7 +15,7 @@ export const authenticateToken = (req, res, next) => {
     req.user = verified;
     next();
   } catch (error) {
-    console.log(error.message); // Log error for debugging
+    console.error(error.message);
     return res.status(401).json({ message: "Invalid Token" });
   }
 };

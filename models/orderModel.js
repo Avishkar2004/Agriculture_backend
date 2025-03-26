@@ -55,7 +55,6 @@ export async function createOrder(orderData) {
         resolve(results); // Resolve promise with query results
       });
     });
-    // console.log("Order placed with ID:", result.insertId);
     return result.insertId;
   } catch (error) {
     console.error("Error while placing the order:", error.message);
@@ -233,7 +232,6 @@ export const getInvoiceDetails = async (orderId, userId) => {
     if (order.length === 0) {
       throw new Error("Invoice not available for this order.");
     }
-    // console.log("Fetched order details:", order[0]); // Debugging log
     return order[0];
   } catch (error) {
     console.error("Error fetching invoice:", error);

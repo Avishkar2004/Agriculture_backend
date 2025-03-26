@@ -4,6 +4,7 @@ import {
   cancelOrder,
   generateInvoice,
   getOrders,
+  getOrderStatus,
   placeOrder,
   placeOrderCheckOut,
   trackOrder,
@@ -26,7 +27,7 @@ router.get("/placedorders", authenticateToken, getOrders);
 //  Track order
 router.get("/trackOrder/:orderId", authenticateToken, trackOrder);
 
-router.put("/order-status/:orderId", authenticateToken, updateOrderStatus);
+router.get("/order-status/:orderId", authenticateToken, getOrderStatus);
 
 // Cancel the Order
 router.patch("/cancelOrder/:orderId", authenticateToken, cancelOrder);

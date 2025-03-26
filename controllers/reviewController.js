@@ -3,8 +3,6 @@ import { db } from "../config/db.js";
 // Add a review
 export const addReview = async (req, res) => {
   const { product_id, user_id, username, rating, comment } = req.body;
-  // console.log("User Id", user_id);
-  // console.log(req.body);
 
   if (
     !product_id ||

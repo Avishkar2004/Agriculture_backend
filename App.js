@@ -124,11 +124,9 @@ if (cluster.isPrimary) {
   app.use(express.urlencoded({ extended: false }));
 
   io.on("connection", (socket) => {
-    console.log("New client connected");
 
     // Join a room
     socket.on("joinRoom", ({ username, room }) => {
-      console.log(`${username} joined room: ${room}`);
       socket.username = username;
       socket.join(room);
 
@@ -207,7 +205,7 @@ if (cluster.isPrimary) {
   app.use("/api/reviews/", aiReviewRoutes);
 
   //! For order/ placedOrders info
-  app.use("/api", authenticateToken, orderRoutes);
+  app.use("/api", orderRoutes);
 
   app.use("/api/delivery-address", deliveryAddressRoutes);
   app.use("/api", deliveryAddressRoutes);
