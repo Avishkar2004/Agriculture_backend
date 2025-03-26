@@ -7,6 +7,7 @@ import {
   getOrdersByUserId,
   trackOrderById,
 } from "../models/orderModel.js";
+import { timeInMs } from "../utils/helper.js";
 
 import PDFDocument from "pdfkit";
 
@@ -141,11 +142,11 @@ export const autoCompleteOrder = async (orderId) => {
               error.message
             );
           }
-        }, 518400000);
+        }, timeInMs({ days: 6 }));
       } catch (error) {
         console.error(`❌ Error shipping order ${orderId}:`, error.message);
       }
-    }, 259200000);
+    }, timeInMs({ days: 3 }));
   } catch (error) {
     console.error(`❌ Error fetching order ${orderId} status:`, error.message);
   }
